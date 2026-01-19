@@ -1,7 +1,6 @@
-"use client"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useLayout } from "@/context/layout-context"
 import {
     LayoutDashboard,
     Package,
@@ -10,7 +9,6 @@ import {
     Database,
     Settings,
     LogOut,
-    Menu
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "next-auth/react"
@@ -26,14 +24,23 @@ const menuItems = [
 
 export function Sidebar() {
     const pathname = usePathname()
+    const { isSidebarCollapsed } = useLayout()
 
     return (
-        <div className="fixed top-0 left-0 w-72 h-full bg-sidebar z-50 transition-all duration-300 font-sans border-r shadow-sm">
-            <div className="flex items-center p-6 mb-8 text-primary font-bold text-2xl">
-                <span className="ml-2">K.M.BOMI</span>
+        <div className={cn(
+            "fixed top-0 left-0 h-full bg-sidebar z-50 transition-all duration-300 font-sans border-r shadow-sm print:hidden",
+            isSidebarCollapsed ? "w-20" : "w-72"
+        )}>
+            <div className={cn(
+                "flex items-center p-6 mb-8 text-primary font-extrabold text-2xl transition-all duration-300",
+                isSidebarCollapsed ? "justify-center px-0" : "px-6"
+            )}>
+                <span className={isSidebarCollapsed ? "text-xl" : "ml-2"}>
+                    {isSidebarCollapsed ? "K" : "K.M.BOMI"}
+                </span>
             </div>
 
-            <nav className="flex flex-col gap-2 px-4">
+            <nav className="flex flex-col gap-2 px-3">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href
                     return (
@@ -41,30 +48,36 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-4 px-4 py-3 rounded-l-full transition-all group relative",
+                                "flex items-center gap-4 py-3 rounded-xl transition-all group relative",
+                                isSidebarCollapsed ? "justify-center px-0" : "px-4",
                                 isActive
-                                    ? "bg-background text-primary ml-4 shadow-[-10px_0_0_var(--sidebar)]"
-                                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary"
+                                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-primary"
                             )}
                         >
-                            {isActive && (
-                                <>
-                                    <div className="absolute top-[-40px] right-0 w-10 h-10 rounded-full bg-transparent shadow-[20px_20px_0_var(--background)] pointer-events-none" />
-                                    <div className="absolute bottom-[-40px] right-0 w-10 h-10 rounded-full bg-transparent shadow-[20px_-20px_0_var(--background)] pointer-events-none" />
-                                </>
+                            <item.icon className={cn(
+                                "h-5 w-5 min-w-[20px] transition-transform group-hover:scale-110",
+                                isActive ? "text-white" : ""
+                            )} />
+                            {!isSidebarCollapsed && (
+                                <span className="whitespace-nowrap font-medium">{item.label}</span>
                             )}
-                            <item.icon className="w-5 h-5 min-w-[20px]" />
-                            <span className="whitespace-nowrap font-medium">{item.label}</span>
+                            {isSidebarCollapsed && isActive && (
+                                <div className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
+                            )}
                         </Link>
                     )
                 })}
 
                 <button
                     onClick={() => signOut()}
-                    className="flex items-center gap-4 px-4 py-3 rounded-l-full transition-all text-destructive hover:bg-destructive/10 mt-10 ml-4"
+                    className={cn(
+                        "flex items-center gap-4 py-3 rounded-xl transition-all text-destructive hover:bg-destructive/10 mt-10",
+                        isSidebarCollapsed ? "justify-center px-0" : "px-4"
+                    )}
                 >
-                    <LogOut className="w-5 h-5 min-w-[20px]" />
-                    <span className="whitespace-nowrap font-medium">Déconnexion</span>
+                    <LogOut className="h-5 w-5 min-w-[20px]" />
+                    {!isSidebarCollapsed && <span className="whitespace-nowrap font-medium">Déconnexion</span>}
                 </button>
             </nav>
         </div>

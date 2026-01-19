@@ -30,7 +30,7 @@ export function Receipt({ data }: ReceiptProps) {
     }
 
     return (
-        <div className="max-w-md mx-auto bg-white p-8 rounded-none shadow-none print:shadow-none print:m-0 border border-gray-100 print:border-none">
+        <div className="max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl border border-gray-100 print:shadow-none print:border-none print:p-0 print:mx-0 print:w-full">
             <div className="flex flex-col items-center mb-8">
                 {data.logoUrl ? (
                     <img src={data.logoUrl} alt="Logo" className="w-24 h-auto mb-4" />

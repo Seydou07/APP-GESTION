@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { settingsSchema } from "@/lib/validations"
 import { z } from "zod"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +16,7 @@ import { Palette, Globe, Image as ImageIcon } from "lucide-react"
 type SettingsFormValues = z.infer<typeof settingsSchema>
 
 export default function SettingsPage() {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(true)
 
@@ -46,6 +48,7 @@ export default function SettingsPage() {
             })
             if (!res.ok) throw new Error("Erreur de sauvegarde")
             toast.success("Paramètres enregistrés avec succès")
+            router.refresh() // <--- Trigger Layout refresh
         } catch (error) {
             toast.error("Erreur lors de l'enregistrement")
         } finally {

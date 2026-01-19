@@ -14,18 +14,37 @@ import { MoreHorizontal, Plus, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
+import { ProductDialog } from "./product-dialog"
+
 export function ProductTable() {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState<any>(null)
 
-    useEffect(() => {
+    const fetchProducts = () => {
+        setLoading(true)
         fetch("/api/products")
             .then(res => res.json())
             .then(data => {
                 setProducts(data)
                 setLoading(false)
             })
+    }
+
+    useEffect(() => {
+        fetchProducts()
     }, [])
+
+    const handleAdd = () => {
+        setSelectedProduct(null)
+        setIsDialogOpen(true)
+    }
+
+    const handleEdit = (product: any) => {
+        setSelectedProduct(product)
+        setIsDialogOpen(true)
+    }
 
     return (
         <div className="bg-background rounded-2xl shadow-sm border-none p-6 space-y-6">
@@ -34,11 +53,18 @@ export function ProductTable() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input placeholder="Rechercher un produit..." className="pl-10 rounded-xl" />
                 </div>
-                <Button className="rounded-xl px-6">
+                <Button onClick={handleAdd} className="rounded-xl px-6">
                     <Plus className="w-4 h-4 mr-2" />
                     Nouveau Produit
                 </Button>
             </div>
+
+            <ProductDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onSuccess={fetchProducts}
+                product={selectedProduct}
+            />
 
             <div className="rounded-xl border">
                 <Table>
@@ -74,8 +100,8 @@ export function ProductTable() {
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">{product.categorie || "-"}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" className="rounded-full">
-                                        <MoreHorizontal className="w-4 h-4" />
+                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="rounded-full">
+                                        <Plus className="w-4 h-4" />
                                     </Button>
                                 </TableCell>
                             </TableRow>

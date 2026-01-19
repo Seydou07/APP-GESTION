@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { revalidatePath } from "next/cache"
 
 export async function GET() {
     try {
@@ -22,7 +23,6 @@ export async function POST(req: Request) {
         return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    // Cast to any to bypass strict NextAuth session types if not extended correctly
     const user = session.user as any
     if (user.role !== "ADMIN") {
         return new NextResponse("Forbidden", { status: 403 })
@@ -46,6 +46,9 @@ export async function POST(req: Request) {
                 data: { appName, logoUrl, themeColor },
             })
         }
+
+        // Force revalidation of all pages to pick up new theme/settings
+        revalidatePath("/", "layout")
 
         return NextResponse.json(result)
     } catch (error) {

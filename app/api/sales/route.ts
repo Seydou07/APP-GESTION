@@ -2,6 +2,24 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
+export async function GET() {
+    const session = await auth()
+    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+
+    try {
+        const sales = await (prisma as any).ventePersistante.findMany({
+            orderBy: {
+                date: "desc"
+            },
+            take: 50 // Limit to last 50 for performance
+        })
+        return NextResponse.json(sales)
+    } catch (error) {
+        console.error("[SALES_GET]", error)
+        return new NextResponse("Internal Error", { status: 500 })
+    }
+}
+
 export async function POST(req: Request) {
     const session = await auth()
     if (!session) return new NextResponse("Unauthorized", { status: 401 })
