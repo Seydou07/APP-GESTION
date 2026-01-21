@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { StatsCards } from "@/components/dashboard/stats-cards"
+import { QuickActions } from "@/components/dashboard/quick-actions"
 import { SalesChart } from "@/components/dashboard/sales-chart"
 import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -24,6 +25,13 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
             <StatsCards />
+
+            <section className="space-y-4">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                    Actions Rapides
+                </h2>
+                <QuickActions />
+            </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">

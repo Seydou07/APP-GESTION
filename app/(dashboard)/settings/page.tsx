@@ -97,26 +97,7 @@ export default function SettingsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-2xl shadow-sm border-none bg-background">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Palette className="w-5 h-5" />
-                                Apparence
-                            </CardTitle>
-                            <CardDescription>
-                                Personnalisez les couleurs du dashboard
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="themeColor">Couleur principale</Label>
-                                <div className="flex gap-4 items-center">
-                                    <Input id="themeColor" type="color" {...register("themeColor")} className="w-20 h-10 p-1 rounded-lg" />
-                                    <span className="text-sm text-muted-foreground">Sélectionnez la couleur de base pour l'interface</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+
 
                     <div className="flex justify-end">
                         <Button onClick={handleSubmit(onSubmit)} disabled={loading} className="rounded-xl px-8 py-6 text-lg">

@@ -48,7 +48,7 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-4 py-3 rounded-xl transition-all group relative",
+                                "flex items-center gap-4 py-3 rounded-lg transition-all group relative",
                                 isSidebarCollapsed ? "justify-center px-0" : "px-4",
                                 isActive
                                     ? "bg-primary text-white shadow-lg shadow-primary/20"

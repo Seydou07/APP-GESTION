@@ -1,7 +1,6 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { saleSchema } from "@/lib/validations"
 import { z } from "zod"
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { ShoppingBag, User, Hash, Loader2 } from "lucide-react"
+import { ShoppingBag, User, Hash, Loader2, Plus, Trash2, ShoppingCart } from "lucide-react"
 import { Receipt } from "./receipt"
 
 type SaleFormValues = z.infer<typeof saleSchema>
@@ -20,6 +19,10 @@ export function SaleForm() {
     const [settings, setSettings] = useState<any>(null)
     const [lastSale, setLastSale] = useState<any>(null)
 
+    // Local state for current selection before adding to cart
+    const [currentProductId, setCurrentProductId] = useState("")
+    const [currentQuantity, setCurrentQuantity] = useState(1)
+
     useEffect(() => {
         fetch("/api/products").then(res => res.json()).then(setProducts)
         fetch("/api/settings").then(res => res.json()).then(setSettings)
@@ -27,20 +30,66 @@ export function SaleForm() {
 
     const {
         register,
+        control,
         handleSubmit,
         watch,
         formState: { errors },
-    } = useForm({
+    } = useForm<SaleFormValues>({
         resolver: zodResolver(saleSchema),
         defaultValues: {
-            quantite: 1,
+            items: [],
+            nomClient: "",
+            prenomClient: "",
+            numeroClient: "",
         }
     })
 
-    const selectedProductId = watch("produitId")
-    const selectedProduct = products.find((p: any) => p.id === Number(selectedProductId)) as any
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "items"
+    })
+
+    const items = watch("items")
+    const totalAmount = items?.reduce((sum, item) => sum + ((item.prixUnitaire || 0) * item.quantite), 0) || 0
+
+    const handleAddToCart = () => {
+        if (!currentProductId) {
+            toast.error("Veuillez sélectionner un produit")
+            return
+        }
+
+        const product = products.find((p: any) => p.id === Number(currentProductId)) as any
+        if (!product) return
+
+        if (product.quantite < currentQuantity) {
+            toast.error("Stock insuffisant")
+            return
+        }
+
+        // Check if item already in cart
+        const existingItemIndex = items.findIndex(item => item.produitId === Number(currentProductId))
+        if (existingItemIndex > -1) {
+            toast.error("Ce produit est déjà dans le panier. Supprimez-le pour modifier la quantité.")
+            return
+        }
+
+        append({
+            produitId: Number(currentProductId),
+            quantite: currentQuantity,
+            designation: product.designation,
+            prixUnitaire: product.prixUnitaire
+        })
+
+        setCurrentProductId("")
+        setCurrentQuantity(1)
+    }
 
     const onSubmit = async (values: SaleFormValues) => {
+        if (values.items.length === 0) {
+            toast.error("Le panier est vide")
+            return
+        }
+
         setLoading(true)
         try {
             const res = await fetch("/api/sales", {
@@ -51,10 +100,11 @@ export function SaleForm() {
             const saleData = await res.json()
 
             setLastSale({
-                designation: selectedProduct?.designation,
-                quantite: values.quantite,
-                prixUnitaire: selectedProduct?.prixUnitaire,
-                total: selectedProduct?.prixUnitaire * values.quantite,
+                items: values.items.map(item => ({
+                    designation: item.designation!,
+                    quantite: item.quantite,
+                    prixUnitaire: item.prixUnitaire!,
+                })),
                 client: `${values.nomClient || ""} ${values.prenomClient || ""}`.trim(),
                 date: new Date().toLocaleDateString(),
                 logoUrl: settings?.logoUrl
@@ -81,72 +131,163 @@ export function SaleForm() {
         )
     }
 
+    const selectedProduct = products.find((p: any) => p.id === Number(currentProductId)) as any
+
     return (
-        <div className="bg-background p-8 rounded-2xl shadow-sm space-y-8">
-            <div className="flex items-center gap-3 text-primary mb-4 border-b pb-4">
-                < ShoppingBag className="w-6 h-6" />
-                <h2 className="text-xl font-bold">Nouvelle Vente</h2>
-            </div>
+        <div className="w-full space-y-6">
+            <div className="bg-background p-8 rounded-2xl shadow-sm border space-y-8">
+                <div className="flex items-center gap-3 text-primary mb-4 border-b pb-4">
+                    < ShoppingBag className="w-6 h-6" />
+                    <h2 className="text-xl font-bold">Nouvelle Vente</h2>
+                </div>
 
-            <form onSubmit={handleSubmit(onSubmit as any)} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <Label>Produit</Label>
-                        <select
-                            {...register("produitId")}
-                            className="w-full h-12 rounded-xl border-muted bg-background px-3 focus:ring-primary outline-none border"
-                        >
-                            <option value="">Sélectionner un produit</option>
-                            {products.map((p: any) => (
-                                <option key={p.id} value={p.id}>{p.designation} ({p.quantite} en stock)</option>
-                            ))}
-                        </select>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Part 1: Product Selection */}
+                    <div className="lg:col-span-1 space-y-6 bg-muted/30 p-6 rounded-2xl border border-dashed">
+                        <h3 className="font-semibold flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Ajouter un produit
+                        </h3>
 
-                    <div className="space-y-2">
-                        <Label>Quantité</Label>
-                        <Input type="number" {...register("quantite")} className="rounded-xl h-12" />
-                    </div>
-
-                    {selectedProduct && (
-                        <div className="p-4 bg-blue-50/50 rounded-xl space-y-2 border border-blue-100">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Prix unitaire:</span>
-                                <span className="font-bold">{selectedProduct.prixUnitaire} F</span>
-                            </div>
-                            <div className="flex justify-between text-lg border-t pt-2 border-blue-200 mt-2">
-                                <span>Total à payer:</span>
-                                <span className="font-bold text-primary">{(selectedProduct.prixUnitaire * (Number(watch("quantite")) || 0)).toLocaleString()} F</span>
-                            </div>
+                        <div className="space-y-2">
+                            <Label>Produit</Label>
+                            <select
+                                value={currentProductId}
+                                onChange={(e) => setCurrentProductId(e.target.value)}
+                                className="w-full h-12 rounded-xl border-muted bg-background px-3 focus:ring-primary outline-none border"
+                            >
+                                <option value="">Sélectionner</option>
+                                {products.map((p: any) => (
+                                    <option key={p.id} value={p.id}>{p.designation} ({p.quantite} en stock)</option>
+                                ))}
+                            </select>
                         </div>
-                    )}
+
+                        <div className="space-y-2">
+                            <Label>Quantité</Label>
+                            <Input
+                                type="number"
+                                value={currentQuantity}
+                                onChange={(e) => setCurrentQuantity(Number(e.target.value))}
+                                className="rounded-xl h-12"
+                                min={1}
+                            />
+                        </div>
+
+                        {selectedProduct && (
+                            <div className="p-4 bg-primary/5 rounded-xl space-y-1 border border-primary/10">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Prix unitaire:</span>
+                                    <span>{selectedProduct.prixUnitaire.toLocaleString()} F</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-sm">
+                                    <span>Sous-total:</span>
+                                    <span className="text-primary">{(selectedProduct.prixUnitaire * currentQuantity).toLocaleString()} F</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <Button
+                            type="button"
+                            onClick={handleAddToCart}
+                            className="w-full h-12 rounded-xl shadow-sm"
+                            variant="secondary"
+                        >
+                            Ajouter au panier
+                        </Button>
+                    </div>
+
+                    {/* Part 2: Cart and Client Info */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8">
+                            <div className="space-y-4">
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    <ShoppingCart className="w-4 h-4" /> Panier ({fields.length} articles)
+                                </h3>
+
+                                {fields.length === 0 ? (
+                                    <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground bg-muted/10">
+                                        Le panier est vide
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-2xl overflow-hidden">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="bg-muted/50 border-b">
+                                                    <th className="text-left p-4 font-medium text-muted-foreground uppercase text-[10px]">Désignation</th>
+                                                    <th className="text-center p-4 font-medium text-muted-foreground uppercase text-[10px]">Prix</th>
+                                                    <th className="text-center p-4 font-medium text-muted-foreground uppercase text-[10px]">Qté</th>
+                                                    <th className="text-right p-4 font-medium text-muted-foreground uppercase text-[10px]">Total</th>
+                                                    <th className="p-4"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {fields.map((field, index) => (
+                                                    <tr key={field.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                                        <td className="p-4 font-medium">{field.designation}</td>
+                                                        <td className="p-4 text-center">{field.prixUnitaire?.toLocaleString()} F</td>
+                                                        <td className="p-4 text-center">
+                                                            <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs font-bold">x{field.quantite}</span>
+                                                        </td>
+                                                        <td className="p-4 text-right font-bold text-primary">
+                                                            {((field.prixUnitaire || 0) * (field.quantite || 0)).toLocaleString()} F
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => remove(index)}
+                                                                className="text-destructive hover:bg-destructive/10 rounded-full"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                <tr className="bg-primary/5 font-bold">
+                                                    <td colSpan={3} className="p-4 text-right">TOTAL GÉNÉRAL :</td>
+                                                    <td className="p-4 text-right text-lg text-primary">{totalAmount.toLocaleString()} FCFA</td>
+                                                    <td></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                {errors.items && <p className="text-sm text-destructive">{errors.items.message}</p>}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase">
+                                        <User size={14} /> Nom
+                                    </Label>
+                                    <Input {...register("nomClient")} placeholder="Client" className="rounded-xl h-11" />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-muted-foreground text-xs uppercase">Prénom</Label>
+                                    <Input {...register("prenomClient")} placeholder="Prénom" className="rounded-xl h-11" />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase">
+                                        <Hash size={14} /> Téléphone
+                                    </Label>
+                                    <Input {...register("numeroClient")} placeholder="Téléphone" className="rounded-xl h-11" />
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                disabled={loading || fields.length === 0}
+                                className="w-full h-14 rounded-xl text-lg font-bold shadow-lg bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98]"
+                            >
+                                {loading ? <Loader2 className="animate-spin mr-2" /> : "Confirmer la Vente & Reçu"}
+                            </Button>
+                        </form>
+                    </div>
                 </div>
-
-                <div className="space-y-6 border-l pl-8">
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-muted-foreground">
-                            <User size={16} /> Nom du Client
-                        </Label>
-                        <Input {...register("nomClient")} placeholder="Ex: Savadogo" className="rounded-xl h-12" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label className="text-muted-foreground">Prénom</Label>
-                        <Input {...register("prenomClient")} placeholder="Ex: Jean" className="rounded-xl h-12" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-muted-foreground">
-                            <Hash size={16} /> Téléphone
-                        </Label>
-                        <Input {...register("numeroClient")} placeholder="70 00 00 00" className="rounded-xl h-12" />
-                    </div>
-
-                    <Button type="submit" disabled={loading} className="w-full h-14 rounded-xl text-lg font-bold mt-4 shadow-blue-200 shadow-lg bg-primary text-white hover:bg-primary/90">
-                        {loading ? <Loader2 className="animate-spin mr-2" /> : "Générer le Reçu"}
-                    </Button>
-                </div>
-            </form>
+            </div>
         </div>
     )
 }

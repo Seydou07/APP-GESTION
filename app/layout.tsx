@@ -24,22 +24,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch settings for dynamic theme
-  let themeColor = "#3C91E6"; // Default
-  try {
-    const settings = await (prisma as any).appSetting.findFirst();
-    if (settings?.themeColor) {
-      themeColor = settings.themeColor;
-    }
-  } catch (error) {
-    console.error("Failed to fetch settings:", error);
-  }
-
   return (
     <html lang="fr">
       <body
         className={`${poppins.variable} font-sans antialiased`}
-        style={{ "--primary-dynamic": themeColor } as any}
       >
         <Providers>
           {children}

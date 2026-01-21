@@ -15,8 +15,12 @@ export const productSchema = z.object({
 });
 
 export const saleSchema = z.object({
-    produitId: z.coerce.number().min(1, "Produit requis"),
-    quantite: z.coerce.number().min(1, "La quantité doit être d'au moins 1"),
+    items: z.array(z.object({
+        produitId: z.number().min(1, "Produit requis"),
+        quantite: z.number().min(1, "La quantité doit être d'au moins 1"),
+        designation: z.string().optional(),
+        prixUnitaire: z.number().optional(),
+    })).min(1, "Le panier doit contenir au moins un produit"),
     nomClient: z.string().optional(),
     prenomClient: z.string().optional(),
     numeroClient: z.string().optional(),
@@ -25,5 +29,4 @@ export const saleSchema = z.object({
 export const settingsSchema = z.object({
     appName: z.string().min(2),
     logoUrl: z.string().url().optional().or(z.literal("")),
-    themeColor: z.string().min(4),
 });

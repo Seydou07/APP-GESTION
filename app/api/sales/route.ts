@@ -26,58 +26,72 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { produitId, quantite, nomClient, prenomClient, numeroClient } = body
+        const { items, nomClient, prenomClient, numeroClient } = body
 
-        // Transaction to update stock and save sale
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error("Le panier est vide")
+        }
+
+        // Transaction to update stock and save sales
         const result = await prisma.$transaction(async (tx: any) => {
-            const produit = await tx.produit.findUnique({
-                where: { id: produitId },
-            })
+            const salesResults = []
 
-            if (!produit || produit.quantite < quantite) {
-                throw new Error("Stock insuffisant")
+            for (const item of items) {
+                const { produitId, quantite } = item
+
+                const produit = await tx.produit.findUnique({
+                    where: { id: Number(produitId) },
+                })
+
+                if (!produit || produit.quantite < quantite) {
+                    throw new Error(`Stock insuffisant pour le produit: ${produit?.designation || produitId}`)
+                }
+
+                const total = produit.prixUnitaire * quantite
+
+                // Create temporary sale
+                const vente = await tx.vente.create({
+                    data: {
+                        produitId: Number(produitId),
+                        designation: produit.designation,
+                        prixUnitaire: produit.prixUnitaire,
+                        quantite,
+                        total,
+                        nomClient,
+                        prenomClient,
+                        numeroClient,
+                    },
+                })
+
+                // Create persistent sale history
+                await tx.ventePersistante.create({
+                    data: {
+                        produitId: Number(produitId),
+                        designation: produit.designation,
+                        prixUnitaire: produit.prixUnitaire,
+                        quantite,
+                        total,
+                        nomClient,
+                        prenomClient,
+                        numeroClient,
+                    },
+                })
+
+                // Update product stock
+                await tx.produit.update({
+                    where: { id: Number(produitId) },
+                    data: {
+                        quantite: produit.quantite - quantite,
+                    },
+                })
+
+                salesResults.push(vente)
             }
 
-            const total = produit.prixUnitaire * quantite
-
-            // Create temporary sale
-            const vente = await tx.vente.create({
-                data: {
-                    produitId,
-                    designation: produit.designation,
-                    prixUnitaire: produit.prixUnitaire,
-                    quantite,
-                    total,
-                    nomClient,
-                    prenomClient,
-                    numeroClient,
-                },
-            })
-
-            // Create persistent sale history
-            await tx.ventePersistante.create({
-                data: {
-                    produitId,
-                    designation: produit.designation,
-                    prixUnitaire: produit.prixUnitaire,
-                    quantite,
-                    total,
-                    nomClient,
-                    prenomClient,
-                    numeroClient,
-                },
-            })
-
-            // Update product stock
-            await tx.produit.update({
-                where: { id: produitId },
-                data: {
-                    quantite: produit.quantite - quantite,
-                },
-            })
-
-            return vente
+            return salesResults
         })
+
+        return NextResponse.json(result)
 
         return NextResponse.json(result)
     } catch (error: any) {

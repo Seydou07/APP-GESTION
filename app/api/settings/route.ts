@@ -9,7 +9,6 @@ export async function GET() {
         return NextResponse.json(settings || {
             appName: "K.M.BOMI",
             logoUrl: "",
-            themeColor: "#3C91E6",
         })
     } catch (error) {
         return new NextResponse("Internal Error", { status: 500 })
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { appName, logoUrl, themeColor } = body
+        const { appName, logoUrl } = body
 
         const settings = await prisma.appSetting.findFirst()
 
@@ -38,11 +37,11 @@ export async function POST(req: Request) {
         if (settings) {
             result = await prisma.appSetting.update({
                 where: { id: settings.id },
-                data: { appName, logoUrl, themeColor },
+                data: { appName, logoUrl },
             })
         } else {
             result = await prisma.appSetting.create({
-                data: { appName, logoUrl, themeColor },
+                data: { appName, logoUrl },
             })
         }
 

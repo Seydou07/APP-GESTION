@@ -12,12 +12,15 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
+interface ReceiptItem {
+    designation: string
+    quantite: number
+    prixUnitaire: number
+}
+
 interface ReceiptProps {
     data: {
-        designation: string
-        quantite: number
-        prixUnitaire: number
-        total: number
+        items: ReceiptItem[]
         client?: string
         date: string
         logoUrl?: string
@@ -28,6 +31,8 @@ export function Receipt({ data }: ReceiptProps) {
     const handlePrint = () => {
         window.print()
     }
+
+    const total = data.items.reduce((sum, item) => sum + (item.prixUnitaire * item.quantite), 0)
 
     return (
         <div className="max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl border border-gray-100 print:shadow-none print:border-none print:p-0 print:mx-0 print:w-full">
@@ -60,17 +65,19 @@ export function Receipt({ data }: ReceiptProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow>
-                            <TableCell className="py-4 font-bold">{data.designation}</TableCell>
-                            <TableCell className="py-4 text-center font-bold">x{data.quantite}</TableCell>
-                            <TableCell className="py-4 text-right font-bold">{data.prixUnitaire} F</TableCell>
-                        </TableRow>
+                        {data.items.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell className="py-4 font-bold">{item.designation}</TableCell>
+                                <TableCell className="py-4 text-center font-bold">x{item.quantite}</TableCell>
+                                <TableCell className="py-4 text-right font-bold">{item.prixUnitaire} F</TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
 
                 <div className="flex justify-between items-center py-4">
                     <span className="text-lg font-bold">TOTAL</span>
-                    <span className="text-2xl font-black text-primary">{data.total.toLocaleString()} FCFA</span>
+                    <span className="text-2xl font-black text-primary">{total.toLocaleString()} FCFA</span>
                 </div>
             </div>
 

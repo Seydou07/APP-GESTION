@@ -7,6 +7,7 @@ import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -21,7 +22,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password } = parsedCredentials.data;
         const user = await prisma.user.findUnique({ where: { email } });
-        
+
         if (!user) return null;
 
         const passwordsMatch = await bcrypt.compare(password, user.password);

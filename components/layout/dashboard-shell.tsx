@@ -24,7 +24,7 @@ export function DashboardShell({
             )}>
                 <Header />
                 <main className="flex-1 p-6 md:p-8 print:p-0">
-                    <div className="mx-auto max-w-7xl space-y-8">
+                    <div className="w-full space-y-8">
                         {children}
                     </div>
                 </main>

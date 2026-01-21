@@ -234,6 +234,14 @@ Si l'application fonctionne localement mais affiche cette erreur sur Vercel :
     3. Assurez-vous d'avoir ajouté `?sslmode=require` à la fin de l'URL si nécessaire.
     4. La configuration dans `lib/prisma.ts` a été mise à jour pour activer `ssl: { rejectUnauthorized: false }` automatiquement en production.
 
+### Problème : [auth][error] MissingSecret
+Si Vercel affiche cette erreur dans les logs :
+*   **Cause** : Auth.js (v5) exige une variable nommée exactement `AUTH_SECRET`.
+*   **Solution** : 
+    1. Générez une clé secrète (ex: `openssl rand -base64 32`).
+    2. Ajoutez une variable d'environnement **`AUTH_SECRET`** sur Vercel avec cette valeur.
+    3. Le code a été mis à jour pour tenter d'utiliser `NEXTAUTH_SECRET` si `AUTH_SECRET` est absent, mais définir `AUTH_SECRET` est la méthode recommandée.
+
 ---
 
 ## 🔁 Migration depuis MySQL (notes rapides)

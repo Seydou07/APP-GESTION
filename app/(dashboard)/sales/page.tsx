@@ -7,7 +7,7 @@ export default function SalesPage() {
                 <h2 className="text-2xl font-bold">Interface de Vente</h2>
                 <p className="text-muted-foreground">Enregistrez de nouvelles ventes et générez des reçus.</p>
             </div>
-            <div className="max-w-4xl">
+            <div className="w-full">
                 <SaleForm />
             </div>
         </div>
