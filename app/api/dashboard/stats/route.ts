@@ -24,17 +24,17 @@ export async function GET() {
         const stats = [
             {
                 label: "Ventes Totales",
-                value: `${(salesSum._sum.total || 0).toLocaleString()} FCFA`,
+                rawValue: salesSum._sum.total || 0,
                 type: "currency"
             },
             {
                 label: "Nouveaux Produits",
-                value: productCount.toString(),
+                rawValue: productCount,
                 type: "number"
             },
             {
                 label: "Clients",
-                value: uniqueClients.length.toString(),
+                rawValue: uniqueClients.length,
                 type: "number"
             }
         ]
