@@ -9,22 +9,34 @@ import { fr } from "date-fns/locale"
 
 export default function DashboardPage() {
     const [recentSales, setRecentSales] = useState([])
-    const [loading, setLoading] = useState(true)
+    const [stats, setStats] = useState([])
+    const [loadingSales, setLoadingSales] = useState(true)
+    const [loadingStats, setLoadingStats] = useState(true)
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
         setMounted(true)
+
+        // Fetch stats
+        fetch("/api/dashboard/stats")
+            .then(res => res.json())
+            .then(data => {
+                setStats(data)
+                setLoadingStats(false)
+            })
+
+        // Fetch recent sales
         fetch("/api/sales")
             .then(res => res.json())
             .then(data => {
                 setRecentSales(data.slice(0, 5))
-                setLoading(false)
+                setLoadingSales(false)
             })
     }, [])
 
     return (
         <div className="space-y-8">
-            <StatsCards />
+            <StatsCards stats={stats} loading={loadingStats} />
 
             <section className="space-y-4">
                 <h2 className="text-xl font-bold flex items-center gap-2">
@@ -41,7 +53,7 @@ export default function DashboardPage() {
                 <div className="bg-background p-6 rounded-2xl shadow-sm border">
                     <h3 className="text-xl font-bold mb-6">Ventes Récentes</h3>
                     <div className="space-y-6">
-                        {loading ? (
+                        {loadingSales ? (
                             <p className="text-center text-muted-foreground py-10">Chargement...</p>
                         ) : recentSales.length === 0 ? (
                             <p className="text-center text-muted-foreground py-10">Aucune vente récente.</p>
