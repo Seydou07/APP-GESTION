@@ -207,6 +207,35 @@ if (!parsed.success)
 
 ---
 
+## 🛠️ Dépannage Déploiement Vercel (Prisma)
+
+### Problème rencontré : "Module '@prisma/client' has no exported member 'PrismaClient'"
+Lors du déploiement sur Vercel, le build peut échouer durant l'étape `Running TypeScript` car le compilateur ne trouve pas le client Prisma généré.
+
+### Pourquoi ?
+Vercel tente de vérifier les types TypeScript **avant** que le client Prisma ne soit physiquement généré dans `node_modules`.
+
+### Solution appliquée
+1. **Migration de `prisma`** : Déplacer le package `prisma` de `devDependencies` vers `dependencies` dans `package.json`.
+2. **Forcer la génération** : Modifier le script de build pour inclure la génération :
+   ```json
+   "build": "prisma generate && next build",
+   "postinstall": "prisma generate"
+   ```
+3. **Bypass TypeScript** : Dans `lib/prisma.ts`, ajoutez `// @ts-ignore` au-dessus de l'import de `PrismaClient` pour permettre au build de démarrer même si le client n'est pas encore présent lors de l'analyse statique initiale.
+4. **Typage des transactions** : Dans les API routes utilisant des transactions, si vous avez une erreur sur le paramètre `tx`, typez-le explicitement comme `any` (ex: `async (tx: any) => { ... }`) pour éviter l'erreur `implicit any`.
+
+### Problème : Error P1001 - "Can't reach database server"
+Si l'application fonctionne localement mais affiche cette erreur sur Vercel :
+*   **Cause probable** : Vercel ne supporte pas l'IPv6 pour les connexions directes à Supabase, ou le SSL est requis.
+*   **Solution** :
+    1. Dans le dashboard Supabase (Settings > Database), récupérez l'URL en mode **Transaction** (port 6543).
+    2. Utilisez cette URL pour votre variable `DATABASE_URL` sur Vercel.
+    3. Assurez-vous d'avoir ajouté `?sslmode=require` à la fin de l'URL si nécessaire.
+    4. La configuration dans `lib/prisma.ts` a été mise à jour pour activer `ssl: { rejectUnauthorized: false }` automatiquement en production.
+
+---
+
 ## 🔁 Migration depuis MySQL (notes rapides)
 
 - Export MySQL : `mysqldump --single-transaction --quick --add-drop-table dbname > dump.sql`
