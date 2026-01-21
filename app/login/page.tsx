@@ -37,7 +37,12 @@ export default function LoginPage() {
             })
 
             if (result?.error) {
-                toast.error("Identifiants invalides")
+                if (result.error === "CredentialsSignin") {
+                    toast.error("Identifiants incorrects")
+                } else {
+                    toast.error("Erreur de connexion au serveur (Base de données ?)")
+                    console.error("Auth Error:", result.error)
+                }
             } else {
                 toast.success("Connexion réussie")
                 router.push("/")
