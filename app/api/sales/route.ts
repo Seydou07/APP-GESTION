@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
@@ -7,7 +8,7 @@ export async function GET() {
     if (!session) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
-        const sales = await (prisma as any).ventePersistante.findMany({
+        const sales = await prisma.ventePersistante.findMany({
             orderBy: {
                 date: "desc"
             },
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
         const { produitId, quantite, nomClient, prenomClient, numeroClient } = body
 
         // Transaction to update stock and save sale
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const produit = await tx.produit.findUnique({
                 where: { id: produitId },
             })

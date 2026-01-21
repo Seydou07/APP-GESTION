@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 
 export async function GET() {
     try {
-        const settings = await (prisma as any).appSetting.findFirst()
+        const settings = await prisma.appSetting.findFirst()
         return NextResponse.json(settings || {
             appName: "K.M.BOMI",
             logoUrl: "",
@@ -32,17 +32,16 @@ export async function POST(req: Request) {
         const body = await req.json()
         const { appName, logoUrl, themeColor } = body
 
-        const db = prisma as any
-        const settings = await db.appSetting.findFirst()
+        const settings = await prisma.appSetting.findFirst()
 
         let result
         if (settings) {
-            result = await db.appSetting.update({
+            result = await prisma.appSetting.update({
                 where: { id: settings.id },
                 data: { appName, logoUrl, themeColor },
             })
         } else {
-            result = await db.appSetting.create({
+            result = await prisma.appSetting.create({
                 data: { appName, logoUrl, themeColor },
             })
         }
