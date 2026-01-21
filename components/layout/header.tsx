@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { useLayout } from "@/context/layout-context"
-import { Menu, Bell, Moon, Sun, User } from "lucide-react"
+import { Menu, Bell, Moon, Sun, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import {
@@ -12,6 +13,16 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose,
+} from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signOut, useSession } from "next-auth/react"
 
@@ -19,6 +30,11 @@ export function Header() {
     const { toggleSidebar } = useLayout()
     const { theme, setTheme } = useTheme()
     const { data: session } = useSession()
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+
+    const handleSignOut = () => {
+        signOut()
+    }
 
     return (
         <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur print:hidden">
@@ -68,11 +84,42 @@ export function Header() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()}>
-                            Se déconnecter
+                        <DropdownMenuItem onClick={() => setIsLogoutDialogOpen(true)} className="text-destructive focus:text-destructive cursor-pointer">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Se déconnecter</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+                    <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 border-none shadow-2xl">
+                        <DialogHeader className="space-y-4">
+                            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto sm:mx-0">
+                                <LogOut className="w-8 h-8 text-destructive" />
+                            </div>
+                            <div className="space-y-2">
+                                <DialogTitle className="text-2xl font-bold">Confirmer la déconnexion</DialogTitle>
+                                <DialogDescription className="text-muted-foreground text-lg">
+                                    Êtes-vous sûr de vouloir vous déconnecter de votre session ?
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
+                        <DialogFooter className="mt-8 flex gap-3 sm:gap-4">
+                            <DialogClose asChild>
+                                <Button variant="ghost" className="flex-1 h-12 rounded-xl text-base font-medium">
+                                    Annuler
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={handleSignOut}
+                                className="flex-1 h-12 rounded-xl text-base font-bold shadow-lg shadow-destructive/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                            >
+                                Déconnexion
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </header>
     )

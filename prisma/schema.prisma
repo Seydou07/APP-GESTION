@@ -112,6 +112,19 @@ model AppSetting {
   @@map("app_settings")
 }
 
+// Table pour les suggestions et idées d'amélioration
+model Suggestion {
+  id        Int      @id @default(autoincrement())
+  sujet     String
+  message   String   @db.Text
+  auteur    String?  // Nom ou pseudo de l'auteur (optionnel)
+  email     String?  // Email de l'auteur pour recontact (optionnel)
+  statut    String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, TERMINE
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("suggestions")
+}
+
 enum TypeOperation {
   AJOUT_STOCK
   VENTE

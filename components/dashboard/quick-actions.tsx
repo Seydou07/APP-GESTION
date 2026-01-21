@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { ShoppingCart, PlusCircle, Package, Settings, ArrowRight } from "lucide-react"
+import { ShoppingCart, PlusCircle, Package, Settings, ArrowRight, HelpCircle } from "lucide-react"
 import Link from "next/link"
 
 const actions = [
@@ -37,11 +37,19 @@ const actions = [
         color: "bg-slate-500",
         hover: "hover:border-slate-500/50"
     },
+    {
+        title: "Besoin d'aide ?",
+        description: "Assistance et maintenance",
+        icon: HelpCircle,
+        href: "/help",
+        color: "bg-indigo-500",
+        hover: "hover:border-indigo-500/50"
+    },
 ]
 
 export function QuickActions() {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {actions.map((action) => (
                 <Link key={action.href} href={action.href}>
                     <Card className={`group p-4 transition-all duration-300 border border-transparent shadow-sm hover:shadow-md ${action.hover} cursor-pointer h-full`}>

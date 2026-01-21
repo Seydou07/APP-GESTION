@@ -30,3 +30,10 @@ export const settingsSchema = z.object({
     appName: z.string().min(2),
     logoUrl: z.string().url().optional().or(z.literal("")),
 });
+
+export const suggestionSchema = z.object({
+    sujet: z.string().min(3, "Le sujet doit faire au moins 3 caractères"),
+    message: z.string().min(10, "Le message doit faire au moins 10 caractères"),
+    auteur: z.string().optional(),
+    email: z.string().email("Email invalide").optional().or(z.literal("")),
+});

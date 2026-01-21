@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { ShoppingBag, User, Hash, Loader2, Plus, Trash2, ShoppingCart } from "lucide-react"
 import { Receipt } from "./receipt"
+import { ProductSearchableSelect } from "./product-searchable-select"
 
 type SaleFormValues = z.infer<typeof saleSchema>
 
@@ -150,16 +151,11 @@ export function SaleForm() {
 
                         <div className="space-y-2">
                             <Label>Produit</Label>
-                            <select
-                                value={currentProductId}
-                                onChange={(e) => setCurrentProductId(e.target.value)}
-                                className="w-full h-12 rounded-xl border-muted bg-background px-3 focus:ring-primary outline-none border"
-                            >
-                                <option value="">Sélectionner</option>
-                                {products.map((p: any) => (
-                                    <option key={p.id} value={p.id}>{p.designation} ({p.quantite} en stock)</option>
-                                ))}
-                            </select>
+                            <ProductSearchableSelect
+                                products={products}
+                                onSelect={(id: string) => setCurrentProductId(id)}
+                                selectedProductId={currentProductId}
+                            />
                         </div>
 
                         <div className="space-y-2">
@@ -209,8 +205,8 @@ export function SaleForm() {
                                         Le panier est vide
                                     </div>
                                 ) : (
-                                    <div className="border rounded-2xl overflow-hidden">
-                                        <table className="w-full text-sm">
+                                    <div className="border rounded-2xl overflow-x-auto custom-scrollbar">
+                                        <table className="w-full text-sm min-w-[600px]">
                                             <thead>
                                                 <tr className="bg-muted/50 border-b">
                                                     <th className="text-left p-4 font-medium text-muted-foreground uppercase text-[10px]">Désignation</th>
