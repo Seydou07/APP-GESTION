@@ -1,10 +1,21 @@
-import { Users, DollarSign, Package } from "lucide-react"
+import { Users, DollarSign, Package, Info } from "lucide-react"
 import { formatCompactNumber } from "@/lib/utils"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const iconMap: Record<string, any> = {
     "Ventes Totales": DollarSign,
     "Nouveaux Produits": Package,
     "Clients": Users,
+}
+
+const infoMap: Record<string, string> = {
+    "Ventes Totales": "Somme cumulée de toutes vos ventes enregistrées.",
+    "Nouveaux Produits": "Nombre total de références distinctes dans votre catalogue.",
+    "Clients": "Nombre de clients uniques identifiés par leur numéro de téléphone.",
 }
 
 const colorMap: Record<string, { text: string; bg: string }> = {
@@ -40,6 +51,7 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
             {stats.map((stat) => {
                 const Icon = iconMap[stat.label] || Package
                 const colors = colorMap[stat.label] || { text: "text-primary", bg: "bg-primary/10" }
+                const infoText = infoMap[stat.label] || ""
 
                 const displayValue = stat.type === "currency"
                     ? `${formatCompactNumber(stat.rawValue)} F`
@@ -58,11 +70,23 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
                         <div className={`p-4 rounded-xl transition-colors ${colors.bg}`}>
                             <Icon className={`w-8 h-8 ${colors.text}`} />
                         </div>
-                        <div>
+                        <div className="flex-1">
                             <h3 className="text-2xl font-black tracking-tight group-hover:text-primary transition-colors">
                                 {displayValue}
                             </h3>
-                            <p className="text-muted-foreground font-medium text-xs uppercase tracking-wider">{stat.label}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wider">{stat.label}</p>
+                                {infoText && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-primary cursor-help transition-colors" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                                            {infoText}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )

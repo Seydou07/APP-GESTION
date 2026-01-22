@@ -57,6 +57,7 @@ model Vente {
   nomClient       String?   @map("nom_client")
   prenomClient    String?   @map("prenom_client")
   numeroClient    String?   @map("numero_client")
+  transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
   date            DateTime  @default(now())
   
   produit         Produit   @relation(fields: [produitId], references: [id], onDelete: Cascade)
@@ -75,6 +76,7 @@ model VentePersistante {
   nomClient       String?   @map("nom_client")
   prenomClient    String?   @map("prenom_client")
   numeroClient    String?   @map("numero_client")
+  transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
   date            DateTime  @default(now())
   createdAt       DateTime  @default(now()) @map("created_at")
   
@@ -82,6 +84,7 @@ model VentePersistante {
   
   @@index([date])
   @@index([nomClient])
+  @@index([transactionId])
   @@map("ventes_persistantes")
 }
 

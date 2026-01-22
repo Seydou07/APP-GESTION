@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale"
 export default function DashboardPage() {
     const [recentSales, setRecentSales] = useState([])
     const [stats, setStats] = useState([])
+    const [chartData, setChartData] = useState([])
     const [loadingSales, setLoadingSales] = useState(true)
     const [loadingStats, setLoadingStats] = useState(true)
     const [mounted, setMounted] = useState(false)
@@ -21,7 +22,8 @@ export default function DashboardPage() {
         fetch("/api/dashboard/stats")
             .then(res => res.json())
             .then(data => {
-                setStats(data)
+                setStats(data.stats)
+                setChartData(data.chartData)
                 setLoadingStats(false)
             })
 
@@ -47,7 +49,7 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <SalesChart />
+                    <SalesChart data={chartData} loading={loadingStats} />
                 </div>
 
                 <div className="bg-background p-6 rounded-2xl shadow-sm border">

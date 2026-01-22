@@ -33,6 +33,8 @@ export async function POST(req: Request) {
         }
 
         // Transaction to update stock and save sales
+        const transactionId = `TRX-${crypto.randomUUID().substring(0, 8).toUpperCase()}`
+
         const result = await prisma.$transaction(async (tx: any) => {
             const salesResults = []
 
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
                         nomClient,
                         prenomClient,
                         numeroClient,
+                        transactionId,
                     },
                 })
 
@@ -74,6 +77,7 @@ export async function POST(req: Request) {
                         nomClient,
                         prenomClient,
                         numeroClient,
+                        transactionId,
                     },
                 })
 
