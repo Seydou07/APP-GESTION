@@ -276,8 +276,8 @@ export default function HistoryPage() {
                                             </TableCell>
                                         </TableRow>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-2xl rounded-3xl p-8 border-none shadow-2xl overflow-hidden">
-                                        <DialogHeader>
+                                    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 border-none shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                        <DialogHeader className="sticky top-0 bg-background/80 backdrop-blur-md pb-4 z-10 border-b mb-6">
                                             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4">
                                                 <FileText className="w-8 h-8" />
                                             </div>
