@@ -73,7 +73,7 @@ export function SuggestionsDialog({ children }: SuggestionsDialogProps) {
                 {children}
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl rounded-3xl p-0 border-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="overflow-y-auto p-8 custom-scrollbar overflow-x-hidden">
+                <div className="overflow-y-auto p-8 overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     {/* Background Decoration */}
                     <div className="absolute -right-16 -top-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl -z-10" />
                     <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl -z-10" />

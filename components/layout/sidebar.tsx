@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLayout } from "@/context/layout-context"
+import { useSession } from "next-auth/react"
 import {
     LayoutDashboard,
     Package,
@@ -11,21 +12,12 @@ import {
     HelpCircle,
     LogOut,
     Lightbulb,
+    Wallet,
+    Users,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "next-auth/react"
 import { SuggestionsDialog } from "./suggestions-dialog"
-
-const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-    { icon: ShoppingCart, label: "Vendre", href: "/sales" },
-    { icon: Package, label: "Produits", href: "/products" },
-    { icon: Database, label: "Stocks", href: "/stock" },
-    { icon: History, label: "Historique", href: "/sales/history" },
-    { icon: Settings, label: "Paramètres", href: "/settings" },
-    { icon: HelpCircle, label: "Aide & Support", href: "/help" },
-]
-
 import { useState } from "react"
 import {
     Dialog,
@@ -43,6 +35,24 @@ export function Sidebar() {
     const pathname = usePathname()
     const { isSidebarCollapsed } = useLayout()
     const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+    const { data: session } = useSession()
+
+    const isAdmin = (session?.user as any)?.role === "ADMIN"
+
+    const menuItems = [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+        { icon: ShoppingCart, label: "Vendre", href: "/sales" },
+        { icon: Package, label: "Produits", href: "/products" },
+        { icon: Database, label: "Stocks", href: "/stock" },
+        { icon: History, label: "Historique", href: "/sales/history" },
+        // Admin Only Links
+        ...(isAdmin ? [
+            { icon: Wallet, label: "Dépenses", href: "/expenses" },
+            { icon: Users, label: "Employés", href: "/employees" },
+        ] : []),
+        { icon: Settings, label: "Paramètres", href: "/settings" },
+        { icon: HelpCircle, label: "Aide & Support", href: "/help" },
+    ]
 
     const handleSignOut = () => {
         signOut()

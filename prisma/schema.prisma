@@ -134,3 +134,48 @@ enum TypeOperation {
   CORRECTION
   RETOUR
 }
+
+// Table des dépenses
+model Depense {
+  id          Int      @id @default(autoincrement())
+  libelle     String
+  montant     Float
+  categorie   String   // Ex: EAU, SODECI, LOYER, SALAIRE, AUTRE
+  date        DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("depenses")
+}
+
+// Table des employés
+model Employe {
+  id          Int      @id @default(autoincrement())
+  nom         String
+  prenom      String
+  poste       String?
+  telephone   String?
+  salaireBase Float    @map("salaire_base")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  paiements   PaiementEmploye[]
+
+  @@map("employes")
+}
+
+// Table des paiements de salaire
+model PaiementEmploye {
+  id          Int      @id @default(autoincrement())
+  employeId   Int      @map("employe_id")
+  montant     Float
+  date        DateTime @default(now())
+  periode     String   // Ex: "Janvier 2024"
+  reference   String?  // Numéro de reçu ou ref transaction
+  note        String?
+
+  employe     Employe  @relation(fields: [employeId], references: [id], onDelete: Cascade)
+
+  @@index([employeId])
+  @@map("paiements_employe")
+}
