@@ -14,3 +14,30 @@ pnpm dev
 bun dev
 ```
 
+## 🗄️ Prisma (ORM)
+
+Fichiers principaux : `prisma/schema.prisma`
+
+Commandes utiles :
+
+```bash
+# Générer le client Prisma
+npx prisma generate
+
+# Créer et appliquer migration (développement)
+npx prisma migrate dev --name init
+
+# Lancer Prisma Studio (interface graphique de la DB)
+npx prisma studio
+```
+
+Exemple `lib/prisma.ts` :
+
+```ts
+import { PrismaClient } from "@prisma/client";
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```

@@ -14,6 +14,7 @@ import {
     Lightbulb,
     Wallet,
     Users,
+    BookUser,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "next-auth/react"
@@ -49,6 +50,7 @@ export function Sidebar() {
         ...(isAdmin ? [
             { icon: Wallet, label: "Dépenses", href: "/expenses" },
             { icon: Users, label: "Employés", href: "/employees" },
+            { icon: BookUser, label: "Dettes / Crédits", href: "/debts" },
         ] : []),
         { icon: Settings, label: "Paramètres", href: "/settings" },
         { icon: HelpCircle, label: "Aide & Support", href: "/help" },

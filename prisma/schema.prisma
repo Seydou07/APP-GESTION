@@ -179,3 +179,40 @@ model PaiementEmploye {
   @@index([employeId])
   @@map("paiements_employe")
 }
+
+enum StatutDette {
+  IMPAYE
+  PARTIEL
+  REGLE
+}
+
+// Table des dettes (Crédits clients)
+model Dette {
+  id            Int           @id @default(autoincrement())
+  nomClient     String        @map("nom_client")
+  telephone     String
+  montantTotal  Float         @map("montant_total")
+  montantVerse  Float         @default(0) @map("montant_verse")
+  statut        StatutDette   @default(IMPAYE)
+  items         Json          // Liste des produits achetés (snapshot)
+  date          DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  paiements     PaiementDette[]
+
+  @@map("dettes")
+}
+
+// Historique des paiements de dettes
+model PaiementDette {
+  id          Int      @id @default(autoincrement())
+  detteId     Int      @map("dette_id")
+  montant     Float
+  date        DateTime @default(now())
+  note        String?
+
+  dette       Dette    @relation(fields: [detteId], references: [id], onDelete: Cascade)
+
+  @@index([detteId])
+  @@map("paiements_dette")
+}

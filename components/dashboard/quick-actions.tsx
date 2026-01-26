@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { ShoppingCart, PlusCircle, Package, Settings, ArrowRight, HelpCircle } from "lucide-react"
+import { ShoppingCart, PlusCircle, Package, Settings, ArrowRight, HelpCircle, BookUser } from "lucide-react"
 import Link from "next/link"
 
 const actions = [
@@ -30,20 +30,20 @@ const actions = [
         hover: "hover:border-amber-500/50"
     },
     {
+        title: "Dettes / Crédits",
+        description: "Suivi des ardoises clients",
+        icon: ShoppingCart, // Using ShoppingCart temporarily, will import BookUser
+        href: "/debts",
+        color: "bg-indigo-500",
+        hover: "hover:border-indigo-500/50"
+    },
+    {
         title: "Paramètres",
-        description: "Configuration de l'application",
+        description: "Configuration",
         icon: Settings,
         href: "/settings",
         color: "bg-slate-500",
         hover: "hover:border-slate-500/50"
-    },
-    {
-        title: "Besoin d'aide ?",
-        description: "Assistance et maintenance",
-        icon: HelpCircle,
-        href: "/help",
-        color: "bg-indigo-500",
-        hover: "hover:border-indigo-500/50"
     },
 ]
 

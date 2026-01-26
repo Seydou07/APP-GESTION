@@ -273,13 +273,58 @@ export function SaleForm() {
                                 </div>
                             </div>
 
-                            <Button
-                                type="submit"
-                                disabled={loading || fields.length === 0}
-                                className="w-full h-14 rounded-xl text-lg font-bold shadow-lg bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98]"
-                            >
-                                {loading ? <Loader2 className="animate-spin mr-2" /> : "Confirmer la Vente & Reçu"}
-                            </Button>
+                            <div className="flex gap-4">
+                                <Button
+                                    type="button"
+                                    onClick={async (e) => {
+                                        e.preventDefault()
+                                        const values = watch()
+
+                                        if (values.items.length === 0) {
+                                            toast.error("Le panier est vide")
+                                            return
+                                        }
+                                        if (!values.nomClient || !values.numeroClient) {
+                                            toast.error("Nom et Téléphone obligatoires pour un crédit")
+                                            return
+                                        }
+
+                                        setLoading(true)
+                                        try {
+                                            const res = await fetch("/api/debts", {
+                                                method: "POST",
+                                                body: JSON.stringify({
+                                                    items: values.items,
+                                                    nomClient: values.nomClient,
+                                                    telephone: values.numeroClient
+                                                }),
+                                            })
+
+                                            if (!res.ok) throw new Error(await res.text())
+
+                                            toast.success("Vente à crédit enregistrée !")
+                                            // Reset form manually or redirect
+                                            window.location.href = "/debts"
+                                        } catch (error: any) {
+                                            toast.error(error.message)
+                                        } finally {
+                                            setLoading(false)
+                                        }
+                                    }}
+                                    disabled={loading || fields.length === 0}
+                                    className="flex-1 h-14 rounded-xl text-lg font-bold shadow-lg bg-orange-500 text-white hover:bg-orange-600 transition-all active:scale-[0.98]"
+                                >
+                                    {loading ? <Loader2 className="animate-spin mr-2" /> : "Vendre à Crédit"}
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    disabled={loading || fields.length === 0}
+                                    className="flex-1 h-14 rounded-xl text-lg font-bold shadow-lg bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98]"
+                                >
+                                    {loading ? <Loader2 className="animate-spin mr-2" /> : "Payer & Reçu"}
+                                </Button>
+                            </div>
                         </form>
                     </div>
                 </div>
