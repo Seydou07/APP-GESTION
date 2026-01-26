@@ -9,7 +9,8 @@ import {
     Mail,
     Wrench,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    ExternalLink
 } from "lucide-react"
 
 export default function HelpPage() {
@@ -99,7 +100,15 @@ export default function HelpPage() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-white/70">Email Support</p>
-                                    <p className="font-bold">support@kmbomi.com</p>
+                                    <a
+                                        href="https://soumaila-savadogo.omnia-elearning.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-bold hover:underline transition-all flex items-center gap-2"
+                                    >
+                                        support@kmbomi.com
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -115,7 +124,7 @@ export default function HelpPage() {
                             <h2 className="text-lg font-bold">Maintenance</h2>
                         </div>
                         <div className="space-y-2 text-sm">
-            
+
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">État du serveur</span>
                                 <span className="text-emerald-500 font-bold flex items-center gap-1">
