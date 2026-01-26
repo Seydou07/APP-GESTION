@@ -59,9 +59,43 @@ export default function DebtsPage() {
         }
     }
 
+    // Receipt Printing (Debt Payment)
+    const handlePrintReceipt = (debt: any, paymentAmount: number, newBalance: number) => {
+        const content = `
+            REÇU DE PAIEMENT - K.M.BOMI
+            --------------------------------
+            Date: ${format(new Date(), "dd/MM/yyyy HH:mm")}
+            
+            CLIENT: ${debt.nomClient}
+            Tél: ${debt.telephone}
+            --------------------------------
+            Total Dette Initial: ${debt.montantTotal.toLocaleString()} F
+            Déjà Payé (Avant): ${(debt.montantVerse).toLocaleString()} F
+            Reste (Avant): ${(debt.montantTotal - debt.montantVerse).toLocaleString()} F
+            --------------------------------
+            MONTANT VERSÉ: ${paymentAmount.toLocaleString()} F
+            --------------------------------
+            NOUVEAU RESTE: ${newBalance.toLocaleString()} F
+            
+            Signature: _______________
+        `
+        const win = window.open("", "Print", "width=400,height=600")
+        if (win) {
+            win.document.write(`<pre style="font-family: monospace; padding: 20px; font-size: 14px;">${content}</pre>`)
+            win.document.close()
+            win.print()
+        }
+    }
+
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!selectedDebt) return
+
+        const amount = Number(paymentAmount)
+        const currentPaid = selectedDebt.montantVerse
+        const total = selectedDebt.montantTotal
+        const newPaid = currentPaid + amount
+        const newBalance = total - newPaid
 
         try {
             const res = await fetch(`/api/debts/${selectedDebt.id}/pay`, {
@@ -78,6 +112,10 @@ export default function DebtsPage() {
             }
 
             toast.success("Paiement enregistré")
+
+            // Trigger Receipt
+            handlePrintReceipt(selectedDebt, amount, newBalance)
+
             setIsPayModalOpen(false)
             setPaymentAmount("")
             setPaymentNote("")
