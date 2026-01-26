@@ -36,6 +36,7 @@ export default function HistoryPage() {
     const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"))
     const [mounted, setMounted] = useState(false)
     const [selectedSale, setSelectedSale] = useState<any>(null)
+    const [expenses, setExpenses] = useState(0)
 
     useEffect(() => {
         setMounted(true)
@@ -50,9 +51,19 @@ export default function HistoryPage() {
             if (startDate) params.append("startDate", startDate)
             if (endDate) params.append("endDate", endDate)
 
-            const res = await fetch(`/api/sales/history?${params.toString()}`)
-            const data = await res.json()
-            setSales(data)
+            const [salesRes, expensesRes] = await Promise.all([
+                fetch(`/api/sales/history?${params.toString()}`),
+                fetch("/api/expenses")
+            ])
+
+            const salesData = await salesRes.json()
+            setSales(salesData)
+
+            if (expensesRes.ok) {
+                const expensesData = await expensesRes.json()
+                const totalExpenses = expensesData.reduce((sum: number, exp: any) => sum + exp.montant, 0)
+                setExpenses(totalExpenses)
+            }
         } catch (error) {
             console.error("Failed to fetch sales history", error)
         } finally {
@@ -67,9 +78,9 @@ export default function HistoryPage() {
     const stats = useMemo(() => {
         const total = filteredSales.reduce((sum, sale: any) => sum + sale.total, 0)
         const count = filteredSales.length
-        const avg = count > 0 ? total / count : 0
-        return { total, count, avg }
-    }, [filteredSales])
+        const margin = total - expenses
+        return { total, count, margin }
+    }, [filteredSales, expenses])
 
     const handleExport = () => {
         const headers = ["ID Transaction", "Date", "Client", "Produits", "Montant Total"]
@@ -151,17 +162,17 @@ export default function HistoryPage() {
                         <User className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Panier Moyen</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Marge Nette</p>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Info className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-primary cursor-help transition-colors" />
                             </TooltipTrigger>
                             <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                                Valeur moyenne de chaque vente. Calculé en divisant le total par le nombre de transactions.
+                                Ventes totales moins dépenses (salaires, commissions, frais). Représente votre bénéfice réel.
                             </TooltipContent>
                         </Tooltip>
                     </div>
-                    <h3 className="text-2xl font-black">{Math.round(stats.avg).toLocaleString()} F</h3>
+                    <h3 className="text-2xl font-black">{Math.round(stats.margin).toLocaleString()} F</h3>
                 </div>
             </div>
 

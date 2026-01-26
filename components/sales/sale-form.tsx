@@ -23,6 +23,8 @@ export function SaleForm() {
     // Local state for current selection before adding to cart
     const [currentProductId, setCurrentProductId] = useState("")
     const [currentQuantity, setCurrentQuantity] = useState(1)
+    const [remise, setRemise] = useState(0)
+    const [commission, setCommission] = useState(0)
 
     useEffect(() => {
         fetch("/api/products").then(res => res.json()).then(setProducts)
@@ -51,7 +53,8 @@ export function SaleForm() {
     })
 
     const items = watch("items")
-    const totalAmount = items?.reduce((sum, item) => sum + ((item.prixUnitaire || 0) * item.quantite), 0) || 0
+    const subtotal = items?.reduce((sum, item) => sum + ((item.prixUnitaire || 0) * item.quantite), 0) || 0
+    const totalAmount = subtotal - remise + commission
 
     const handleAddToCart = () => {
         if (!currentProductId) {
@@ -95,7 +98,11 @@ export function SaleForm() {
         try {
             const res = await fetch("/api/sales", {
                 method: "POST",
-                body: JSON.stringify(values),
+                body: JSON.stringify({
+                    ...values,
+                    remise,
+                    commission
+                }),
             })
             if (!res.ok) throw new Error(await res.text())
             const saleData = await res.json()
@@ -270,6 +277,35 @@ export function SaleForm() {
                                         <Hash size={14} /> Téléphone
                                     </Label>
                                     <Input {...register("numeroClient")} placeholder="Téléphone" className="rounded-xl h-11" />
+                                </div>
+                            </div>
+
+                            {/* Financial Adjustments */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <Label className="text-muted-foreground text-xs uppercase">Remise (Réduction)</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0"
+                                        value={remise}
+                                        onChange={(e) => setRemise(Number(e.target.value))}
+                                        className="rounded-xl h-11 font-mono"
+                                        min="0"
+                                    />
+                                    <p className="text-xs text-muted-foreground">Montant à soustraire du total</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-muted-foreground text-xs uppercase">Commission (Intermédiaire)</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0"
+                                        value={commission}
+                                        onChange={(e) => setCommission(Number(e.target.value))}
+                                        className="rounded-xl h-11 font-mono"
+                                        min="0"
+                                    />
+                                    <p className="text-xs text-muted-foreground">Montant commission (sera déduit en dépense)</p>
                                 </div>
                             </div>
 

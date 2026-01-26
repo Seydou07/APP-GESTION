@@ -60,6 +60,10 @@ model Vente {
   transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
   date            DateTime  @default(now())
   
+  // New fields for financial adjustments
+  remise          Float     @default(0)
+  commission      Float     @default(0)
+  
   produit         Produit   @relation(fields: [produitId], references: [id], onDelete: Cascade)
   
   @@map("ventes")
@@ -79,6 +83,10 @@ model VentePersistante {
   transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
   date            DateTime  @default(now())
   createdAt       DateTime  @default(now()) @map("created_at")
+  
+  // New fields for financial adjustments
+  remise          Float     @default(0)
+  commission      Float     @default(0)
   
   produit         Produit   @relation(fields: [produitId], references: [id], onDelete: Cascade)
   

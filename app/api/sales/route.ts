@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { items, nomClient, prenomClient, numeroClient } = body
+        const { items, nomClient, prenomClient, numeroClient, remise = 0, commission = 0 } = body
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error("Le panier est vide")
@@ -78,6 +78,8 @@ export async function POST(req: Request) {
                         prenomClient,
                         numeroClient,
                         transactionId,
+                        remise,
+                        commission,
                     },
                 })
 
@@ -90,6 +92,19 @@ export async function POST(req: Request) {
                 })
 
                 salesResults.push(vente)
+            }
+
+            // If commission > 0, create expense
+            if (commission > 0) {
+                await tx.depense.create({
+                    data: {
+                        libelle: `Commission sur vente ${transactionId}`,
+                        montant: commission,
+                        categorie: "COMMISSION",
+                        date: new Date(),
+                        notes: `Génération automatique pour transaction ${transactionId}`
+                    }
+                })
             }
 
             return salesResults
