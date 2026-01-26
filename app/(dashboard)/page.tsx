@@ -72,7 +72,9 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <p className="font-extrabold text-sm text-primary">+{sale.total.toLocaleString()} F</p>
+                                <p className="font-extrabold text-sm text-primary">
+                                    +{new Intl.NumberFormat('fr-FR', { notation: "compact", maximumFractionDigits: 1 }).format(sale.total)} F
+                                </p>
                             </div>
                         ))}
                     </div>
