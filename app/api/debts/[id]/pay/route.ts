@@ -4,12 +4,13 @@ import { NextResponse } from "next/server"
 
 export async function POST(
     req: Request,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth()
         if (!session) return new NextResponse("Unauthorized", { status: 401 })
 
+        const params = await props.params;
         const { id } = params
         const body = await req.json()
         const { montant, note } = body
