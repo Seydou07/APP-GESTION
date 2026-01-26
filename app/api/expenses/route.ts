@@ -9,7 +9,20 @@ export async function GET(req: Request) {
             return new NextResponse("Unauthorized", { status: 403 })
         }
 
+        const { searchParams } = new URL(req.url)
+        const startDate = searchParams.get("startDate")
+        const endDate = searchParams.get("endDate")
+
+        const where: any = {}
+        if (startDate && endDate) {
+            where.date = {
+                gte: new Date(startDate),
+                lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            }
+        }
+
         const expenses = await prisma.depense.findMany({
+            where,
             orderBy: {
                 date: 'desc'
             }

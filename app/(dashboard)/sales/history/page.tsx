@@ -53,7 +53,7 @@ export default function HistoryPage() {
 
             const [salesRes, expensesRes] = await Promise.all([
                 fetch(`/api/sales/history?${params.toString()}`),
-                fetch("/api/expenses")
+                fetch(`/api/expenses?${params.toString()}`)
             ])
 
             const salesData = await salesRes.json()
