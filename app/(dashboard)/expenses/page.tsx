@@ -232,7 +232,7 @@ export default function ExpensesPage() {
             </div>
 
             <div className="bg-background rounded-3xl shadow-sm border p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div className="md:col-span-2 relative">
                         <Label className="text-xs font-bold uppercase mb-2 block">Recherche</Label>
                         <div className="relative">
@@ -245,29 +245,27 @@ export default function ExpensesPage() {
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 md:col-span-2">
-                        <div>
-                            <Label className="text-xs font-bold uppercase mb-2 block">Du</Label>
-                            <Input
-                                type="date"
-                                className="rounded-xl h-12"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-xs font-bold uppercase mb-2 block">Au</Label>
-                            <Input
-                                type="date"
-                                className="rounded-xl h-12"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                            />
-                        </div>
+                    <div>
+                        <Label className="text-xs font-bold uppercase mb-2 block">Du</Label>
+                        <Input
+                            type="date"
+                            className="rounded-xl h-12"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs font-bold uppercase mb-2 block">Au</Label>
+                        <Input
+                            type="date"
+                            className="rounded-xl h-12"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
                     </div>
                     <Button
                         onClick={fetchExpenses}
-                        className="rounded-xl h-12 font-bold w-full md:col-start-4"
+                        className="rounded-xl h-12 font-bold w-full"
                         variant="secondary"
                     >
                         Filtrer
