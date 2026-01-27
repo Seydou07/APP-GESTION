@@ -8,11 +8,20 @@ export async function GET(req: Request) {
         if (!session) return new NextResponse("Unauthorized", { status: 401 })
 
         const { searchParams } = new URL(req.url)
-        const status = searchParams.get("status") // IMPAYE, PARTIEL, REGLE
+        const status = searchParams.get("status")
+        const startDate = searchParams.get("startDate")
+        const endDate = searchParams.get("endDate")
 
         const where: any = {}
         if (status) {
             where.statut = status
+        }
+
+        if (startDate && endDate) {
+            where.date = {
+                gte: new Date(startDate),
+                lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            }
         }
 
         const debts = await prisma.dette.findMany({

@@ -32,6 +32,11 @@ export default function DebtsPage() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
 
+    // Filter state
+    const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"))
+    const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"))
+    const [monthlyNewDebts, setMonthlyNewDebts] = useState(0)
+
     // Payment Modal State
     const [selectedDebt, setSelectedDebt] = useState<any>(null)
     const [isPayModalOpen, setIsPayModalOpen] = useState(false)
@@ -44,16 +49,33 @@ export default function DebtsPage() {
 
     useEffect(() => {
         fetchDebts()
+        fetchMonthlyNewDebts()
     }, [])
+
+    const fetchMonthlyNewDebts = async () => {
+        try {
+            const start = format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+            const end = format(new Date(), "yyyy-MM-dd")
+            const res = await fetch(`/api/debts?startDate=${start}&endDate=${end}`)
+            if (res.ok) {
+                const data = await res.json()
+                const total = data.reduce((acc: number, curr: any) => acc + curr.montantTotal, 0)
+                setMonthlyNewDebts(total)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     const fetchDebts = async () => {
         setLoading(true)
         try {
-            const res = await fetch("/api/debts")
+            const res = await fetch(`/api/debts?startDate=${startDate}&endDate=${endDate}`)
             const data = await res.json()
             setDebts(data)
         } catch (error) {
             console.error(error)
+            toast.error("Erreur lors du chargement des dettes")
         } finally {
             setLoading(false)
         }
@@ -119,7 +141,7 @@ export default function DebtsPage() {
             setIsPayModalOpen(false)
             setPaymentAmount("")
             setPaymentNote("")
-            fetchDebts()
+            handlePaymentSuccess()
         } catch (error: any) {
             toast.error(error.message || "Erreur lors du paiement")
         }
@@ -131,6 +153,11 @@ export default function DebtsPage() {
     )
 
     const totalDettes = filteredDebts.reduce((acc, d: any) => acc + (d.montantTotal - d.montantVerse), 0)
+
+    const handlePaymentSuccess = () => {
+        fetchDebts()
+        fetchMonthlyNewDebts()
+    }
 
     const getStatusBadge = (statut: string) => {
         switch (statut) {
@@ -154,25 +181,67 @@ export default function DebtsPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2 group hover:border-indigo-500/50 transition-all">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+                        <Plus className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nouvelles Dettes (Mois)</p>
+                        <h3 className="text-2xl font-black text-indigo-600">{monthlyNewDebts.toLocaleString()} F</h3>
+                    </div>
+                </div>
+
+                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2 group hover:border-primary/50 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                         <TrendingDown className="w-6 h-6" />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Reste à Recouvrer</p>
-                    <h3 className="text-2xl font-black">{totalDettes.toLocaleString()} F</h3>
+                    <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Reste à Recouvrer (Filtré)</p>
+                        <h3 className="text-2xl font-black text-primary">{totalDettes.toLocaleString()} F</h3>
+                    </div>
                 </div>
             </div>
 
             <div className="bg-background rounded-3xl shadow-sm border p-8 space-y-8">
-                <div className="relative max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                        placeholder="Rechercher un client..."
-                        className="pl-12 h-14 rounded-2xl bg-muted/30 border-none focus-visible:ring-primary text-base"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div className="md:col-span-2 relative">
+                        <Label className="text-xs font-bold uppercase mb-2 block">Recherche</Label>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                                placeholder="Rechercher un client ou téléphone..."
+                                className="pl-12 h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-primary text-base"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <Label className="text-xs font-bold uppercase mb-2 block">Du</Label>
+                        <Input
+                            type="date"
+                            className="rounded-xl h-12"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs font-bold uppercase mb-2 block">Au</Label>
+                        <Input
+                            type="date"
+                            className="rounded-xl h-12"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+                    <Button
+                        onClick={fetchDebts}
+                        className="rounded-xl h-12 font-bold w-full"
+                        variant="secondary"
+                    >
+                        Filtrer
+                    </Button>
                 </div>
 
                 <div className="rounded-2xl border overflow-hidden">
