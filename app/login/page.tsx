@@ -11,13 +11,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Loader2, LogIn } from "lucide-react"
+import { Loader2, Eye, EyeOff, ShoppingBag } from "lucide-react"
+import Image from "next/image"
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     const {
         register,
@@ -40,7 +42,7 @@ export default function LoginPage() {
                 if (result.error === "CredentialsSignin") {
                     toast.error("Identifiants incorrects")
                 } else {
-                    toast.error("Erreur de connexion au serveur (Base de données ?)")
+                    toast.error("Erreur de connexion au serveur")
                     console.error("Auth Error:", result.error)
                 }
             } else {
@@ -56,69 +58,122 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-            <div className="w-full max-w-md bg-background p-8 rounded-3xl shadow-xl border">
-                <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-primary mb-4">
-                        <LogIn size={32} />
+        <div className="min-h-screen flex items-stretch font-sans bg-background">
+            {/* Left Section: Branding & Illustration */}
+            <div className="hidden lg:flex w-1/2 bg-[#3C91E6] flex-col justify-between p-16 relative overflow-hidden">
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 text-white mb-12">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                            <ShoppingBag className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-2xl font-black tracking-tighter">K.M.BOMI</span>
                     </div>
-                    <h1 className="text-3xl font-bold">K.M.BOMI</h1>
-                    <p className="text-muted-foreground mt-2 text-center">
-                        Connectez-vous pour accéder à votre espace de gestion.
+
+                    <h1 className="text-5xl xl:text-6xl font-black text-white leading-tight">
+                        Simplifiez la <br />
+                        <span className="text-white/80">gestion avec votre</span> <br />
+                        tableau de bord.
+                    </h1>
+                    <p className="text-white/70 mt-6 text-xl max-w-md border-l-2 border-white/30 pl-6">
+                        Gérez vos stocks, vos ventes et vos employés avec une interface intuitive conçue pour votre succès.
                     </p>
                 </div>
+            </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="votre@email.com"
-                            className="rounded-xl border-muted ring-offset-background focus-visible:ring-primary"
-                            {...register("email")}
-                        />
-                        {errors.email && (
-                            <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
-                        )}
+            {/* Right Section: Login Form */}
+            <div className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-24 xl:px-32 py-12 relative">
+                <div className="w-full max-w-md mx-auto space-y-10">
+                    <div className="lg:hidden flex justify-center mb-8">
+                        <div className="flex items-center gap-2">
+                            <div className="w-12 h-12 bg-[#3C91E6] rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <ShoppingBag className="w-7 h-7 text-white" />
+                            </div>
+                            <span className="text-2xl font-black tracking-tighter text-[#3C91E6]">K.M.BOMI</span>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Mot de passe</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="••••••••"
-                            className="rounded-xl border-muted ring-offset-background focus-visible:ring-primary"
-                            {...register("password")}
-                        />
-                        {errors.password && (
-                            <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
-                        )}
+                    <div className="space-y-4">
+                        <h2 className="text-4xl font-extrabold tracking-tight">Bienvenue</h2>
+                        <p className="text-muted-foreground text-lg">
+                            Veuillez vous connecter à votre compte.
+                        </p>
                     </div>
 
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full h-12 rounded-xl text-lg font-medium shadow-lg hover:shadow-xl transition-all"
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Connexion en cours...
-                            </>
-                        ) : (
-                            "Se connecter"
-                        )}
-                    </Button>
-                </form>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="email" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Adresse Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="votre@email.com"
+                                className="h-14 rounded-2xl border-muted bg-muted/20 focus-visible:ring-primary text-base px-6 transition-all"
+                                {...register("email")}
+                            />
+                            {errors.email && (
+                                <p className="text-xs font-medium text-destructive mt-1 flex items-center gap-1">
+                                    <span className="w-1 h-1 bg-destructive rounded-full" /> {errors.email.message}
+                                </p>
+                            )}
+                        </div>
 
-                <p className="text-center text-sm text-muted-foreground mt-8">
-                    Pas encore de compte ?{" "}
-                    <span className="text-primary font-semibold cursor-pointer hover:underline">
-                        Contactez un administrateur
-                    </span>
-                </p>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <Label htmlFor="password" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Mot de passe</Label>
+                                <button type="button" className="text-sm font-bold text-primary hover:underline">Oublié ?</button>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    className="h-14 rounded-2xl border-muted bg-muted/20 focus-visible:ring-primary text-base px-6 pr-14 transition-all"
+                                    {...register("password")}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-primary transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            {errors.password && (
+                                <p className="text-xs font-medium text-destructive mt-1 flex items-center gap-1">
+                                    <span className="w-1 h-1 bg-destructive rounded-full" /> {errors.password.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-14 rounded-2xl text-lg font-black bg-[#3C91E6] hover:bg-[#2c6caf] text-white active:scale-[0.98] transition-all"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                                    Chargement...
+                                </>
+                            ) : (
+                                "Se connecter"
+                            )}
+                        </Button>
+                    </form>
+
+                    <div className="pt-8 text-center border-t">
+                        <p className="text-muted-foreground font-medium">
+                            Vous n'avez pas encore de compte ? <br />
+                            <span className="text-primary font-black cursor-pointer hover:underline">
+                                Contactez un administrateur
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Responsive Footer */}
+                <div className="mt-auto pt-10 text-center text-xs text-muted-foreground lg:text-left">
+                    &copy; 2026 K.M.BOMI. Tous droits réservés.
+                </div>
             </div>
         </div>
     )
