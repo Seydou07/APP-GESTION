@@ -21,6 +21,7 @@ export function ProductTable() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<any>(null)
+    const [searchTerm, setSearchTerm] = useState("")
 
     const fetchProducts = () => {
         setLoading(true)
@@ -46,12 +47,23 @@ export function ProductTable() {
         setIsDialogOpen(true)
     }
 
+    // Filter products based on search term
+    const filteredProducts = products.filter((product: any) =>
+        product.designation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.categorie && product.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+
     return (
         <div className="bg-background rounded-2xl shadow-sm border-none p-6 space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input placeholder="Rechercher un produit..." className="pl-10 rounded-xl" />
+                    <Input
+                        placeholder="Rechercher un produit..."
+                        className="pl-10 rounded-xl"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
                 <Button onClick={handleAdd} className="rounded-xl px-6">
                     <Plus className="w-4 h-4 mr-2" />
@@ -82,11 +94,13 @@ export function ProductTable() {
                             <TableRow>
                                 <TableCell colSpan={5} className="h-24 text-center">Chargement...</TableCell>
                             </TableRow>
-                        ) : products.length === 0 ? (
+                        ) : filteredProducts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">Aucun produit trouvé</TableCell>
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    {searchTerm ? "Aucun produit ne correspond à votre recherche" : "Aucun produit trouvé"}
+                                </TableCell>
                             </TableRow>
-                        ) : products.map((product: any) => (
+                        ) : filteredProducts.map((product: any) => (
                             <TableRow key={product.id}>
                                 <TableCell className="font-medium">{product.designation}</TableCell>
                                 <TableCell>{product.prixUnitaire} F</TableCell>
