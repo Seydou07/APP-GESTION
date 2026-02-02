@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, Wallet, TrendingDown, Calendar } from "lucide-react"
+import { Plus, Search, Wallet, TrendingDown, Calendar, Eye, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,6 +38,8 @@ export default function ExpensesPage() {
     const [expenses, setExpenses] = useState([])
     const [loading, setLoading] = useState(true)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+    const [selectedExpense, setSelectedExpense] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
 
     // Filter state
@@ -265,8 +267,7 @@ export default function ExpensesPage() {
                     </div>
                     <Button
                         onClick={fetchExpenses}
-                        className="rounded-xl h-12 font-bold w-full"
-                        variant="secondary"
+                        className="rounded-xl h-12 font-bold w-full shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
                     >
                         Filtrer
                     </Button>
@@ -279,17 +280,18 @@ export default function ExpensesPage() {
                                 <TableHead className="font-bold text-xs uppercase tracking-wider pl-8 py-4">Date</TableHead>
                                 <TableHead className="font-bold text-xs uppercase tracking-wider py-4">Libellé</TableHead>
                                 <TableHead className="font-bold text-xs uppercase tracking-wider py-4">Catégorie</TableHead>
-                                <TableHead className="font-bold text-xs uppercase tracking-wider py-4 text-right pr-8">Montant</TableHead>
+                                <TableHead className="font-bold text-xs uppercase tracking-wider py-4 text-right">Montant</TableHead>
+                                <TableHead className="font-bold text-xs uppercase tracking-wider py-4 text-center pr-8">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-10">Chargement...</TableCell>
+                                    <TableCell colSpan={5} className="text-center py-10">Chargement...</TableCell>
                                 </TableRow>
                             ) : filteredExpenses.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">Aucune dépense trouvée.</TableCell>
+                                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">Aucune dépense trouvée.</TableCell>
                                 </TableRow>
                             ) : filteredExpenses.map((ex: any) => (
                                 <TableRow key={ex.id} className="hover:bg-muted/20">
@@ -305,8 +307,21 @@ export default function ExpensesPage() {
                                             {ex.categorie}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right pr-8 font-bold text-destructive">
+                                    <TableCell className="text-right font-bold text-destructive">
                                         - {ex.montant.toLocaleString()} F
+                                    </TableCell>
+                                    <TableCell className="text-center pr-8">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSelectedExpense(ex)
+                                                setIsDetailModalOpen(true)
+                                            }}
+                                            className="rounded-lg text-muted-foreground hover:text-primary"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -314,6 +329,61 @@ export default function ExpensesPage() {
                     </Table>
                 </div>
             </div>
+
+            {/* Detail Modal */}
+            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto rounded-3xl p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <DialogHeader className="mb-6">
+                        <DialogTitle className="text-2xl font-black flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                <Wallet className="w-5 h-5" />
+                            </div>
+                            Détails de la Dépense
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {selectedExpense && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="p-5 bg-muted/30 rounded-2xl border space-y-3">
+                                    <h4 className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Infos Générales</h4>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Libellé</p>
+                                        <p className="font-bold text-lg">{selectedExpense.libelle}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Catégorie</p>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-muted text-foreground mt-1">
+                                            {selectedExpense.categorie}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Date</p>
+                                        <p className="font-medium">{format(new Date(selectedExpense.date), "dd MMMM yyyy", { locale: fr })}</p>
+                                    </div>
+                                </div>
+
+                                <div className="p-5 bg-red-50/50 rounded-2xl border border-red-100 flex flex-col justify-center items-center text-center space-y-2">
+                                    <p className="text-sm font-bold text-red-600 uppercase tracking-widest">Montant</p>
+                                    <p className="font-black text-4xl text-red-600">{selectedExpense.montant.toLocaleString()} F</p>
+                                </div>
+                            </div>
+
+                            {selectedExpense.notes && (
+                                <div className="p-5 bg-yellow-50/50 rounded-2xl border border-yellow-100 space-y-3">
+                                    <div className="flex items-center gap-2 text-yellow-700">
+                                        <FileText className="w-4 h-4" />
+                                        <h4 className="font-bold text-sm uppercase tracking-widest">Notes & Détails</h4>
+                                    </div>
+                                    <p className="text-sm text-yellow-900 leading-relaxed whitespace-pre-wrap">
+                                        {selectedExpense.notes}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -51,6 +51,7 @@ export function Sidebar() {
             { icon: Wallet, label: "Dépenses", href: "/expenses" },
             { icon: Users, label: "Employés", href: "/employees" },
             { icon: BookUser, label: "Dettes / Crédits", href: "/debts" },
+            { icon: Users, label: "Utilisateurs", href: "/users" },
         ] : []),
         { icon: Settings, label: "Paramètres", href: "/settings" },
         { icon: HelpCircle, label: "Aide & Support", href: "/help" },

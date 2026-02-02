@@ -6,7 +6,7 @@ export const loginSchema = z.object({
 });
 
 export const productSchema = z.object({
-    id: z.string().optional(),
+    id: z.union([z.string(), z.number()]).optional(),
     designation: z.string().min(2, "La désignation est requise"),
     prixUnitaire: z.coerce.number().min(0, "Le prix doit être positif"),
     quantite: z.coerce.number().min(0, "La quantité doit être positive"),

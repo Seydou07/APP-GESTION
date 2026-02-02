@@ -2,7 +2,7 @@
 
 
 import { useEffect, useState } from "react"
-import { Plus, Search, Users, Banknote, Calendar, Printer, UserPlus } from "lucide-react"
+import { Plus, Search, Users, Banknote, Calendar, Printer, UserPlus, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,6 +39,7 @@ export default function EmployeesPage() {
     const [isPayModalOpen, setIsPayModalOpen] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
     const [lastPayment, setLastPayment] = useState<any>(null) // To show receipt after payment
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
     // Forms
     const [employeeForm, setEmployeeForm] = useState({
@@ -145,6 +146,11 @@ export default function EmployeesPage() {
         }
     }
 
+    const openDetailModal = (emp: any) => {
+        setSelectedEmployee(emp)
+        setIsDetailModalOpen(true)
+    }
+
     return (
         <div className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -236,6 +242,9 @@ export default function EmployeesPage() {
                                                     <Button size="sm" onClick={() => openPayModal(emp)} className="rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700">
                                                         <Banknote className="w-4 h-4 mr-2" /> Payer
                                                     </Button>
+                                                    <Button size="icon" variant="ghost" onClick={() => openDetailModal(emp)} className="rounded-lg ml-2 text-muted-foreground hover:text-primary">
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -312,6 +321,90 @@ export default function EmployeesPage() {
                             Confirmer le Paiement
                         </Button>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Detail Modal */}
+            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto rounded-3xl p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <DialogHeader className="mb-6">
+                        <DialogTitle className="text-2xl font-black flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                <Users className="w-5 h-5" />
+                            </div>
+                            Détails de l'Employé
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {selectedEmployee && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="p-6 bg-muted/30 rounded-2xl border space-y-4">
+                                    <h4 className="font-bold text-sm uppercase tracking-widest text-muted-foreground">Informations Personnelles</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Nom Complet</p>
+                                            <p className="font-bold text-lg">{selectedEmployee.nom} {selectedEmployee.prenom}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Téléphone</p>
+                                            <p className="font-medium">{selectedEmployee.telephone || "Non renseigné"}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Poste Actuel</p>
+                                            <p className="font-medium bg-primary/10 text-primary inline-block px-3 py-1 rounded-lg text-sm">{selectedEmployee.poste}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-4">
+                                    <h4 className="font-bold text-sm uppercase tracking-widest text-blue-600">Données Salariales</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-blue-600/70">Salaire de Base</p>
+                                            <p className="font-black text-2xl text-blue-700">{selectedEmployee.salaireBase.toLocaleString()} F</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-600/70">Total Payé (Historique)</p>
+                                            <p className="font-bold text-lg text-blue-700">
+                                                {payments.filter((p: any) => p.employeId === selectedEmployee.id)
+                                                    .reduce((acc: number, curr: any) => acc + curr.montant, 0).toLocaleString()} F
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-lg">Historique des Paiements</h3>
+                                <div className="rounded-2xl border overflow-hidden">
+                                    <Table>
+                                        <TableHeader className="bg-muted/50">
+                                            <TableRow>
+                                                <TableHead className="font-bold">Date</TableHead>
+                                                <TableHead className="font-bold">Période</TableHead>
+                                                <TableHead className="font-bold">Note</TableHead>
+                                                <TableHead className="font-bold text-right">Montant</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {payments.filter((p: any) => p.employeId === selectedEmployee.id).length === 0 ? (
+                                                <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">Aucun paiement trouvé</TableCell></TableRow>
+                                            ) : (
+                                                payments.filter((p: any) => p.employeId === selectedEmployee.id).map((pay: any) => (
+                                                    <TableRow key={pay.id}>
+                                                        <TableCell>{format(new Date(pay.date), "dd/MM/yyyy")}</TableCell>
+                                                        <TableCell>{pay.periode}</TableCell>
+                                                        <TableCell className="text-muted-foreground text-xs italic">{pay.reference || "-"}</TableCell>
+                                                        <TableCell className="text-right font-mono font-bold">{pay.montant.toLocaleString()} F</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

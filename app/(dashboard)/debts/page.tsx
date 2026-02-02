@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, BookUser, TrendingDown, Plus, Banknote, History, CheckCircle2, AlertCircle, Clock } from "lucide-react"
+import { Search, BookUser, TrendingDown, Plus, Banknote, History, CheckCircle2, AlertCircle, Clock, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,6 +46,7 @@ export default function DebtsPage() {
     // New Debt Modal State
     // Note: Main creation is via Sales, but keeping a manual option is good practice or can be disabled
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
     useEffect(() => {
         fetchDebts()
@@ -237,8 +238,7 @@ export default function DebtsPage() {
                     </div>
                     <Button
                         onClick={fetchDebts}
-                        className="rounded-xl h-12 font-bold w-full"
-                        variant="secondary"
+                        className="rounded-xl h-12 font-bold w-full shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
                     >
                         Filtrer
                     </Button>
@@ -289,6 +289,17 @@ export default function DebtsPage() {
                                                 <Banknote className="w-4 h-4 mr-2" /> Régler
                                             </Button>
                                         )}
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSelectedDebt(d)
+                                                setIsDetailModalOpen(true)
+                                            }}
+                                            className="rounded-lg ml-2 text-muted-foreground hover:text-primary"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -347,6 +358,93 @@ export default function DebtsPage() {
                             Confirmer l'Encaissement
                         </Button>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Detail Modal */}
+            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto rounded-3xl p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <DialogHeader className="mb-6">
+                        <DialogTitle className="text-2xl font-black flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                <BookUser className="w-5 h-5" />
+                            </div>
+                            Détails de la Dette
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {selectedDebt && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="p-6 bg-muted/30 rounded-2xl border space-y-4">
+                                    <h4 className="font-bold text-sm uppercase tracking-widest text-muted-foreground">Client</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Nom Client</p>
+                                            <p className="font-bold text-lg">{selectedDebt.nomClient}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Téléphone</p>
+                                            <p className="font-medium">{selectedDebt.telephone}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Date Création</p>
+                                            <p className="font-medium">{format(new Date(selectedDebt.date), "dd MMMM yyyy", { locale: fr })}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Statut Actuel</p>
+                                            <div className="mt-1">{getStatusBadge(selectedDebt.statut)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-4">
+                                    <h4 className="font-bold text-sm uppercase tracking-widest text-indigo-600">Situation Financière</h4>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center pb-2 border-b border-indigo-100">
+                                            <p className="text-sm font-medium text-indigo-900">Montant Total</p>
+                                            <p className="font-black text-xl text-indigo-900">{selectedDebt.montantTotal.toLocaleString()} F</p>
+                                        </div>
+                                        <div className="flex justify-between items-center pb-2 border-b border-indigo-100">
+                                            <p className="text-sm font-medium text-emerald-700">Déjà Versé</p>
+                                            <p className="font-bold text-lg text-emerald-700">{selectedDebt.montantVerse.toLocaleString()} F</p>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1">
+                                            <p className="text-sm font-black uppercase text-red-600">Reste à Payer</p>
+                                            <p className="font-black text-2xl text-red-600">{(selectedDebt.montantTotal - selectedDebt.montantVerse).toLocaleString()} F</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-lg">Historique des Règlements</h3>
+                                <div className="rounded-2xl border overflow-hidden">
+                                    <Table>
+                                        <TableHeader className="bg-muted/50">
+                                            <TableRow>
+                                                <TableHead className="font-bold">Date</TableHead>
+                                                <TableHead className="font-bold">Note</TableHead>
+                                                <TableHead className="font-bold text-right">Montant</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {selectedDebt.paiements && selectedDebt.paiements.length > 0 ? (
+                                                selectedDebt.paiements.map((pay: any) => (
+                                                    <TableRow key={pay.id}>
+                                                        <TableCell>{format(new Date(pay.date), "dd/MM/yyyy HH:mm")}</TableCell>
+                                                        <TableCell className="text-muted-foreground italic">{pay.note || "-"}</TableCell>
+                                                        <TableCell className="text-right font-mono font-bold text-emerald-600">+{pay.montant.toLocaleString()} F</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground">Aucun règlement enregistré</TableCell></TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>
