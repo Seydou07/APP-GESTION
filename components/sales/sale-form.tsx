@@ -129,7 +129,17 @@ export function SaleForm() {
     if (lastSale) {
         return (
             <div className="space-y-6">
-                <Receipt data={lastSale} />
+                <Receipt
+                    data={{
+                        title: "Reçu de Vente",
+                        items: lastSale.items,
+                        client: lastSale.client,
+                        date: lastSale.date,
+                        total: lastSale.items.reduce((sum: number, item: any) => sum + (item.prixUnitaire * item.quantite), 0),
+                        logoUrl: lastSale.logoUrl,
+                        footerMessage: "Merci pour votre achat !"
+                    }}
+                />
                 <div className="text-center print:hidden">
                     <Button variant="ghost" onClick={() => setLastSale(null)} className="rounded-xl">
                         Effectuer une autre vente

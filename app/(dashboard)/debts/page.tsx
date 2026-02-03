@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { toast } from "sonner"
+import { Receipt } from "@/components/sales/receipt"
 import { cn } from "@/lib/utils"
 
 export default function DebtsPage() {
@@ -47,10 +48,13 @@ export default function DebtsPage() {
     // Note: Main creation is via Sales, but keeping a manual option is good practice or can be disabled
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+    const [receiptData, setReceiptData] = useState<any>(null)
+    const [settings, setSettings] = useState<any>(null)
 
     useEffect(() => {
         fetchDebts()
         fetchMonthlyNewDebts()
+        fetch("/api/settings").then(res => res.json()).then(setSettings)
     }, [])
 
     const fetchMonthlyNewDebts = async () => {
@@ -84,30 +88,27 @@ export default function DebtsPage() {
 
     // Receipt Printing (Debt Payment)
     const handlePrintReceipt = (debt: any, paymentAmount: number, newBalance: number) => {
-        const content = `
-            REÇU DE PAIEMENT - K.M.BOMI
-            --------------------------------
-            Date: ${format(new Date(), "dd/MM/yyyy HH:mm")}
-            
-            CLIENT: ${debt.nomClient}
-            Tél: ${debt.telephone}
-            --------------------------------
-            Total Dette Initial: ${debt.montantTotal.toLocaleString()} F
-            Déjà Payé (Avant): ${(debt.montantVerse).toLocaleString()} F
-            Reste (Avant): ${(debt.montantTotal - debt.montantVerse).toLocaleString()} F
-            --------------------------------
-            MONTANT VERSÉ: ${paymentAmount.toLocaleString()} F
-            --------------------------------
-            NOUVEAU RESTE: ${newBalance.toLocaleString()} F
-            
-            Signature: _______________
-        `
-        const win = window.open("", "Print", "width=400,height=600")
-        if (win) {
-            win.document.write(`<pre style="font-family: monospace; padding: 20px; font-size: 14px;">${content}</pre>`)
-            win.document.close()
-            win.print()
-        }
+        setReceiptData({
+            title: "Reçu de Règlement",
+            subtitle: "Paiement de Crédit Client",
+            client: debt.nomClient,
+            date: format(new Date(), "dd/MM/yyyy HH:mm"),
+            items: [
+                {
+                    designation: "Règlement partiel/total de dette",
+                    quantite: 1,
+                    prixUnitaire: paymentAmount
+                }
+            ],
+            total: paymentAmount,
+            extraInfo: [
+                { label: "Ancien Reste", value: `${(debt.montantTotal - debt.montantVerse).toLocaleString()} F` },
+                { label: "Nouveau Reste", value: `${newBalance.toLocaleString()} F` },
+                { label: "Téléphone", value: debt.telephone }
+            ],
+            logoUrl: settings?.logoUrl,
+            footerMessage: "Merci pour votre règlement !"
+        })
     }
 
     const handlePayment = async (e: React.FormEvent) => {
@@ -442,6 +443,29 @@ export default function DebtsPage() {
                                         </TableBody>
                                     </Table>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Receipt Modal */}
+            <Dialog open={!!receiptData} onOpenChange={(open) => !open && setReceiptData(null)}>
+                <DialogContent className="max-w-lg bg-transparent border-none shadow-none p-6 text-foreground max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <DialogTitle className="sr-only">Reçu de Paiement</DialogTitle>
+                    <DialogDescription className="sr-only">Détails du règlement effectué</DialogDescription>
+                    {receiptData && (
+                        <div className="relative">
+                            <Receipt data={receiptData} />
+                            <div className="absolute top-4 right-4 print:hidden">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setReceiptData(null)}
+                                    className="bg-white/80 backdrop-blur-sm rounded-full"
+                                >
+                                    <Plus className="w-5 h-5 rotate-45" />
+                                </Button>
                             </div>
                         </div>
                     )}

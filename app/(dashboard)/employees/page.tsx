@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { toast } from "sonner"
+import { Receipt } from "@/components/sales/receipt"
 
 export default function EmployeesPage() {
     const [employees, setEmployees] = useState([])
@@ -40,6 +41,8 @@ export default function EmployeesPage() {
     const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
     const [lastPayment, setLastPayment] = useState<any>(null) // To show receipt after payment
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+    const [receiptData, setReceiptData] = useState<any>(null)
+    const [settings, setSettings] = useState<any>(null)
 
     // Forms
     const [employeeForm, setEmployeeForm] = useState({
@@ -54,6 +57,7 @@ export default function EmployeesPage() {
 
     useEffect(() => {
         fetchData()
+        fetch("/api/settings").then(res => res.json()).then(setSettings)
     }, [])
 
     const fetchData = async () => {
@@ -114,7 +118,7 @@ export default function EmployeesPage() {
 
             const payment = await res.json()
             toast.success("Paiement enregistré")
-            setLastPayment(payment) // Show receipt?
+            handlePrintReceipt(payment)
             fetchData()
             setIsPayModalOpen(false)
         } catch {
@@ -124,26 +128,26 @@ export default function EmployeesPage() {
 
     // Receipt printing logic (Simulated)
     const handlePrintReceipt = (payment: any) => {
-        // In a real app, this would open a formatted print window
-        const content = `
-            REÇU DE PAIEMENT - K.M.BOMI
-            --------------------------------
-            Ref: ${payment.reference || '-'}
-            Date: ${format(new Date(payment.date), "dd/MM/yyyy")}
-            
-            Employé: ${payment.employe.nom} ${payment.employe.prenom}
-            Période: ${payment.periode}
-            
-            MONTANT PAYÉ: ${payment.montant.toLocaleString()} FCFA
-            
-            Signature: _______________
-        `
-        const win = window.open("", "Print", "width=400,height=600")
-        if (win) {
-            win.document.write(`<pre style="font-family: monospace; padding: 20px;">${content}</pre>`)
-            win.document.close()
-            win.print()
-        }
+        setReceiptData({
+            title: "Reçu de Salaire",
+            client: `${payment.employe.nom} ${payment.employe.prenom}`,
+            date: format(new Date(payment.date), "dd/MM/yyyy HH:mm"),
+            reference: payment.reference,
+            items: [
+                {
+                    designation: `Paiement Salaire - ${payment.periode}`,
+                    quantite: 1,
+                    prixUnitaire: payment.montant
+                }
+            ],
+            total: payment.montant,
+            extraInfo: [
+                { label: "Poste", value: payment.employe.poste || "-" },
+                { label: "Note", value: payment.note || "-" }
+            ],
+            logoUrl: settings?.logoUrl,
+            footerMessage: "Reçu généré par K.M.BOMI"
+        })
     }
 
     const openDetailModal = (emp: any) => {
@@ -402,6 +406,29 @@ export default function EmployeesPage() {
                                         </TableBody>
                                     </Table>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Receipt Modal */}
+            <Dialog open={!!receiptData} onOpenChange={(open) => !open && setReceiptData(null)}>
+                <DialogContent className="max-w-lg bg-transparent border-none shadow-none p-6 max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <DialogTitle className="sr-only">Reçu de Paiement</DialogTitle>
+                    <DialogDescription className="sr-only">Détails du paiement de salaire</DialogDescription>
+                    {receiptData && (
+                        <div className="relative">
+                            <Receipt data={receiptData} />
+                            <div className="absolute top-4 right-4 print:hidden">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setReceiptData(null)}
+                                    className="bg-white/80 backdrop-blur-sm rounded-full"
+                                >
+                                    <Plus className="w-5 h-5 rotate-45" />
+                                </Button>
                             </div>
                         </div>
                     )}
