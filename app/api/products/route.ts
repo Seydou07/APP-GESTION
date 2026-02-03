@@ -19,6 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
     const session = await auth()
     if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     const session = await auth()
     if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()
@@ -57,6 +59,7 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
     const session = await auth()
     if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, User, Mail, Shield, Trash2, Loader2, UserPlus, AlertTriangle } from "lucide-react"
+import { Plus, Search, User, Mail, Shield, Trash2, Loader2, UserPlus, AlertTriangle, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,12 +32,22 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isConfirmOpen, setIsConfirmOpen] = useState(false)
     const [userToDelete, setUserToDelete] = useState<string | null>(null)
+    const [userToEdit, setUserToEdit] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
 
-    // Form state
+    // Form states
     const [formData, setFormData] = useState({
+        pseudo: "",
+        email: "",
+        password: "",
+        role: "VENDEUR"
+    })
+
+    const [editFormData, setEditFormData] = useState({
+        id: "",
         pseudo: "",
         email: "",
         password: "",
@@ -88,6 +98,30 @@ export default function UsersPage() {
         }
     }
 
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setSubmitting(true)
+        try {
+            const res = await fetch("/api/users", {
+                method: "PATCH",
+                body: JSON.stringify(editFormData)
+            })
+
+            if (!res.ok) {
+                const error = await res.text()
+                throw new Error(error || "Erreur lors de la modification")
+            }
+
+            toast.success("Utilisateur mis à jour")
+            fetchUsers()
+            setIsEditDialogOpen(false)
+        } catch (error: any) {
+            toast.error(error.message)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
     const handleDelete = async (id: string) => {
         try {
             const res = await fetch("/api/users", {
@@ -105,6 +139,17 @@ export default function UsersPage() {
         } catch (error: any) {
             toast.error(error.message)
         }
+    }
+
+    const openEditModal = (user: any) => {
+        setEditFormData({
+            id: user.id,
+            pseudo: user.pseudo,
+            email: user.email,
+            password: "", // Keep password empty unless changing
+            role: user.role
+        })
+        setIsEditDialogOpen(true)
     }
 
     const filteredUsers = users.filter((u: any) =>
@@ -251,7 +296,15 @@ export default function UsersPage() {
                                     <TableCell className="py-4 text-xs font-medium text-muted-foreground">
                                         {format(new Date(user.createdAt), "dd MMM yyyy", { locale: fr })}
                                     </TableCell>
-                                    <TableCell className="text-right pr-8 py-4">
+                                    <TableCell className="text-right pr-8 py-4 space-x-2">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => openEditModal(user)}
+                                            className="rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </Button>
                                         <Button
                                             size="icon"
                                             variant="ghost"
@@ -270,6 +323,66 @@ export default function UsersPage() {
                     </Table>
                 </div>
             </div>
+
+            {/* Edit User Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-[500px] rounded-3xl p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black">Modifier l'Utilisateur</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdate} className="space-y-4 mt-4">
+                        <div className="grid gap-2">
+                            <Label>Pseudo / Nom</Label>
+                            <Input
+                                required
+                                placeholder="Ex: Jean Paul"
+                                value={editFormData.pseudo}
+                                onChange={e => setEditFormData({ ...editFormData, pseudo: e.target.value })}
+                                className="rounded-xl"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Email de connexion</Label>
+                            <Input
+                                required
+                                type="email"
+                                placeholder="email@exemple.com"
+                                value={editFormData.email}
+                                onChange={e => setEditFormData({ ...editFormData, email: e.target.value })}
+                                className="rounded-xl"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Nouveau mot de passe (laisser vide si inchangé)</Label>
+                            <Input
+                                type="password"
+                                placeholder="••••••••"
+                                value={editFormData.password}
+                                onChange={e => setEditFormData({ ...editFormData, password: e.target.value })}
+                                className="rounded-xl"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Rôle</Label>
+                            <Select
+                                value={editFormData.role}
+                                onValueChange={v => setEditFormData({ ...editFormData, role: v })}
+                            >
+                                <SelectTrigger className="rounded-xl">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                    <SelectItem value="VENDEUR">Vendeur (Accès limité)</SelectItem>
+                                    <SelectItem value="ADMIN">Administrateur (Accès total)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button type="submit" disabled={submitting} className="w-full rounded-xl font-bold h-12 mt-2">
+                            {submitting ? <Loader2 className="animate-spin mr-2" /> : "Enregistrer les modifications"}
+                        </Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             <ConfirmDialog
                 open={isConfirmOpen}

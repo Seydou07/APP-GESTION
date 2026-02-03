@@ -106,8 +106,10 @@ export function SaleForm() {
             })
             if (!res.ok) throw new Error(await res.text())
             const saleData = await res.json()
+            const transactionId = saleData[0]?.transactionId
 
             setLastSale({
+                id: transactionId,
                 items: values.items.map(item => ({
                     designation: item.designation!,
                     quantite: item.quantite,
@@ -132,6 +134,7 @@ export function SaleForm() {
                 <Receipt
                     data={{
                         title: "Reçu de Vente",
+                        reference: lastSale.id,
                         items: lastSale.items,
                         client: lastSale.client,
                         date: lastSale.date,

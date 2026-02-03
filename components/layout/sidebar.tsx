@@ -43,11 +43,11 @@ export function Sidebar() {
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/" },
         { icon: ShoppingCart, label: "Vendre", href: "/sales" },
-        { icon: Package, label: "Produits", href: "/products" },
-        { icon: Database, label: "Stocks", href: "/stock" },
         { icon: History, label: "Historique", href: "/sales/history" },
         // Admin Only Links
         ...(isAdmin ? [
+            { icon: Package, label: "Produits", href: "/products" },
+            { icon: Database, label: "Stocks", href: "/stock" },
             { icon: Wallet, label: "Dépenses", href: "/expenses" },
             { icon: Users, label: "Employés", href: "/employees" },
             { icon: BookUser, label: "Dettes / Crédits", href: "/debts" },

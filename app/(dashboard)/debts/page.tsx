@@ -277,19 +277,23 @@ export default function DebtsPage() {
                                     <TableCell className="text-right font-mono font-bold text-indigo-600">{(d.montantTotal - d.montantVerse).toLocaleString()} F</TableCell>
                                     <TableCell className="text-center">{getStatusBadge(d.statut)}</TableCell>
                                     <TableCell className="text-center">
-                                        {d.statut !== "REGLE" && (
-                                            <Button
-                                                size="sm"
-                                                onClick={() => {
-                                                    setSelectedDebt(d)
-                                                    setPaymentAmount((d.montantTotal - d.montantVerse).toString())
-                                                    setIsPayModalOpen(true)
-                                                }}
-                                                className="rounded-lg font-bold bg-indigo-600 hover:bg-indigo-700"
-                                            >
-                                                <Banknote className="w-4 h-4 mr-2" /> Régler
-                                            </Button>
-                                        )}
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedDebt(d)
+                                                setPaymentAmount((d.montantTotal - d.montantVerse).toString())
+                                                setIsPayModalOpen(true)
+                                            }}
+                                            disabled={d.statut === "REGLE"}
+                                            className={cn(
+                                                "rounded-lg font-bold transition-all",
+                                                d.statut === "REGLE"
+                                                    ? "bg-muted text-muted-foreground border-none opacity-50 cursor-not-allowed"
+                                                    : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                                            )}
+                                        >
+                                            <Banknote className="w-4 h-4 mr-2" /> Régler
+                                        </Button>
                                         <Button
                                             size="icon"
                                             variant="ghost"

@@ -2,15 +2,27 @@
 
 import { useEffect, useState } from "react"
 import { Package, AlertTriangle } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { redirect } from "next/navigation"
 
 export default function StockPage() {
+    const { data: session, status } = useSession()
     const [products, setProducts] = useState([])
 
     useEffect(() => {
+        if (status === "unauthenticated") {
+            redirect("/login")
+        }
+        if (status === "authenticated" && (session?.user as any)?.role !== "ADMIN") {
+            redirect("/")
+        }
+
         fetch("/api/products")
             .then(res => res.json())
             .then(setProducts)
-    }, [])
+    }, [status, session])
+
+    if (status === "loading") return null
 
     const lowStock = products.filter((p: any) => p.quantite <= p.seuilAlerte)
 

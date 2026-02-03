@@ -37,11 +37,21 @@ export default function HistoryPage() {
     const [mounted, setMounted] = useState(false)
     const [selectedSale, setSelectedSale] = useState<any>(null)
     const [expenses, setExpenses] = useState(0)
+    const [searchMounted, setSearchMounted] = useState(false)
 
     useEffect(() => {
         setMounted(true)
-        fetchSales()
     }, [])
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchSales()
+        }, searchMounted ? 500 : 0)
+
+        if (!searchMounted) setSearchMounted(true)
+
+        return () => clearTimeout(delayDebounceFn)
+    }, [searchTerm, startDate, endDate])
 
     const fetchSales = async () => {
         setLoading(true)

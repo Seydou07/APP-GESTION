@@ -1,6 +1,14 @@
 import { ProductTable } from "@/components/products/product-table"
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+    const session = await auth()
+
+    if ((session?.user as any)?.role !== "ADMIN") {
+        redirect("/")
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col">

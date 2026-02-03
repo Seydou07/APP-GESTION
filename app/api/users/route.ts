@@ -89,3 +89,42 @@ export async function DELETE(req: Request) {
         return new NextResponse("Internal Error", { status: 500 })
     }
 }
+
+export async function PATCH(req: Request) {
+    const session = await auth()
+    if (!session || (session.user as any)?.role !== "ADMIN") {
+        return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    try {
+        const body = await req.json()
+        const { id, pseudo, email, password, role } = body
+
+        if (!id) {
+            return new NextResponse("ID manquant", { status: 400 })
+        }
+
+        const updateData: any = {
+            pseudo,
+            email,
+            role,
+        }
+
+        if (password) {
+            updateData.password = await bcrypt.hash(password, 10)
+        }
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: updateData,
+        })
+
+        const { password: _, ...userWithoutPassword } = user
+        return NextResponse.json(userWithoutPassword)
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return new NextResponse("Cet email est déjà utilisé", { status: 400 })
+        }
+        return new NextResponse("Internal Error", { status: 500 })
+    }
+}

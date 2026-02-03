@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signOut, useSession } from "next-auth/react"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 export function Header() {
     const { toggleSidebar } = useLayout()
@@ -64,6 +66,22 @@ export function Header() {
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background" />
                 </Button>
+
+                {session?.user && (
+                    <div className="hidden sm:block ml-2">
+                        <Badge
+                            variant="secondary"
+                            className={cn(
+                                "border-none px-3 py-1 rounded-full font-black text-[10px] tracking-widest uppercase shadow-sm",
+                                (session.user as any).role === "ADMIN"
+                                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
+                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            )}
+                        >
+                            {(session.user as any).role || "USER"}
+                        </Badge>
+                    </div>
+                )}
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

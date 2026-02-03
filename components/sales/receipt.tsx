@@ -61,9 +61,15 @@ export function Receipt({ data, showButtons = true }: ReceiptProps) {
                 )}
                 <div className="w-full border-b-2 border-dashed border-gray-300 my-4" />
                 <p className="text-sm font-black uppercase">K.M.BOMI - GESTION</p>
-                <div className="flex flex-col items-center gap-1 mt-1">
-                    {data.reference && <p className="text-[10px] font-mono text-muted-foreground uppercase">Réf: {data.reference}</p>}
-                    <p className="text-[10px] text-muted-foreground">{data.date}</p>
+                <div className="flex flex-col items-center gap-1 mt-2">
+                    {data.reference && (
+                        <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+                            <p className="text-[11px] font-black text-primary uppercase tracking-wider">
+                                Transaction ID: {data.reference}
+                            </p>
+                        </div>
+                    )}
+                    <p className="text-[10px] text-muted-foreground font-medium mt-1">{data.date}</p>
                 </div>
             </div>
 
