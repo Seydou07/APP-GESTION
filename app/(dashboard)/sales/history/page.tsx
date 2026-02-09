@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { Search, Calendar, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info } from "lucide-react"
+import { Search, Calendar, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info, CreditCard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
     Table,
     TableBody,
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, isSameMonth, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
-import { formatCompactNumber } from "@/lib/utils"
+import { formatCompactNumber, cn } from "@/lib/utils"
 import {
     Tooltip,
     TooltipContent,
@@ -93,9 +94,10 @@ export default function HistoryPage() {
     }, [filteredSales, expenses])
 
     const handleExport = () => {
-        const headers = ["ID Transaction", "Date", "Client", "Produits", "Montant Total"]
+        const headers = ["ID Transaction", "Type", "Date", "Client", "Produits", "Montant Total"]
         const rows = filteredSales.map((s: any) => [
             s.transactionId,
+            s.type === "VERSEMENT_DETTE" ? "Réglement Dette" : "Vente",
             format(new Date(s.date), "dd/MM/yyyy HH:mm"),
             s.nomClient || "Client Comptoir",
             s.items.map((i: any) => `${i.designation} (x${i.quantite})`).join(" | "),
@@ -262,9 +264,16 @@ export default function HistoryPage() {
                                             onClick={() => setSelectedSale(sale)}
                                         >
                                             <TableCell className="py-5 font-mono text-sm pl-8">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-primary font-bold">{sale.transactionId}</span>
-                                                    <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-primary font-bold">{sale.transactionId}</span>
+                                                        <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                    {sale.type === "VERSEMENT_DETTE" && (
+                                                        <Badge variant="outline" className="w-fit text-[9px] font-black border-emerald-200 bg-emerald-50 text-emerald-700 uppercase tracking-tighter px-1.5 py-0">
+                                                            Règlement Dette
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-5">
@@ -273,7 +282,10 @@ export default function HistoryPage() {
                                             </TableCell>
                                             <TableCell className="py-5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-black uppercase">
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase",
+                                                        sale.type === "VERSEMENT_DETTE" ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
+                                                    )}>
                                                         {(sale.nomClient || "Client").substring(0, 2)}
                                                     </div>
                                                     <div>
@@ -284,25 +296,38 @@ export default function HistoryPage() {
                                             </TableCell>
                                             <TableCell className="py-5">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="px-2 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg uppercase tracking-tighter">
+                                                    <div className={cn(
+                                                        "px-2 py-1 text-[10px] font-black rounded-lg uppercase tracking-tighter",
+                                                        sale.type === "VERSEMENT_DETTE" ? "bg-emerald-50 text-emerald-600" : "bg-primary/5 text-primary"
+                                                    )}>
                                                         {sale.items.length} produit{sale.items.length > 1 ? 's' : ''}
                                                     </div>
                                                     <p className="text-sm truncate max-w-[200px] text-muted-foreground">
-                                                        {sale.items[0].designation} {sale.items.length > 1 ? '...' : ''}
+                                                        {sale.items[0]?.designation || "Règlement"} {sale.items.length > 1 ? '...' : ''}
                                                     </p>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-5 text-right pr-8">
-                                                <span className="text-lg font-black tracking-tight">{sale.total.toLocaleString()} F</span>
+                                                <span className={cn(
+                                                    "text-lg font-black tracking-tight",
+                                                    sale.type === "VERSEMENT_DETTE" ? "text-emerald-600" : ""
+                                                )}>
+                                                    {sale.total.toLocaleString()} F
+                                                </span>
                                             </TableCell>
                                         </TableRow>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 border-none shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                         <DialogHeader className="sticky top-0 bg-background/80 backdrop-blur-md pb-4 z-10 border-b mb-6">
-                                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4">
-                                                <FileText className="w-8 h-8" />
+                                            <div className={cn(
+                                                "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors",
+                                                sale.type === "VERSEMENT_DETTE" ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary"
+                                            )}>
+                                                {sale.type === "VERSEMENT_DETTE" ? <CreditCard className="w-8 h-8" /> : <FileText className="w-8 h-8" />}
                                             </div>
-                                            <DialogTitle className="text-2xl font-black">Détails de la Vente</DialogTitle>
+                                            <DialogTitle className="text-2xl font-black">
+                                                {sale.type === "VERSEMENT_DETTE" ? "Détails du Règlement" : "Détails de la Vente"}
+                                            </DialogTitle>
                                             <div className="flex flex-wrap gap-4 mt-2">
                                                 <div className="px-3 py-1 bg-muted rounded-full text-xs font-bold text-muted-foreground">
                                                     ID: {sale.transactionId}
@@ -310,7 +335,17 @@ export default function HistoryPage() {
                                                 <div className="px-3 py-1 bg-muted rounded-full text-xs font-bold text-muted-foreground">
                                                     {mounted && format(new Date(sale.date), "dd/MM/yyyy HH:mm")}
                                                 </div>
+                                                {sale.type === "VERSEMENT_DETTE" && (
+                                                    <Badge className="bg-emerald-500 text-white border-none px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+                                                        Règlement Dette
+                                                    </Badge>
+                                                )}
                                             </div>
+                                            {sale.note && (
+                                                <div className="mt-4 p-4 bg-muted/50 rounded-xl text-sm italic text-muted-foreground border-l-4 border-primary">
+                                                    "{sale.note}"
+                                                </div>
+                                            )}
                                         </DialogHeader>
 
                                         <div className="mt-8 space-y-8">

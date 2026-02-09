@@ -36,8 +36,24 @@ export async function GET(req: Request) {
             }
         })
 
+        // Fetch debt payments within same range
+        const debtPayments = await prisma.paiementDette.findMany({
+            where: {
+                date: where.date,
+                dette: query ? {
+                    nomClient: { contains: query, mode: 'insensitive' }
+                } : undefined
+            },
+            include: {
+                dette: true
+            },
+            orderBy: {
+                date: "desc"
+            }
+        })
+
         // Group by transactionId
-        const groupedSales = sales.reduce((acc: any, sale: any) => {
+        const groupedData = sales.reduce((acc: any, sale: any) => {
             const key = sale.transactionId || `legacy-${sale.id}`
             if (!acc[key]) {
                 acc[key] = {
@@ -46,6 +62,7 @@ export async function GET(req: Request) {
                     nomClient: sale.nomClient,
                     prenomClient: sale.prenomClient,
                     numeroClient: sale.numeroClient,
+                    type: "VENTE",
                     items: [],
                     total: 0
                 }
@@ -55,7 +72,35 @@ export async function GET(req: Request) {
             return acc
         }, {})
 
-        return NextResponse.json(Object.values(groupedSales))
+        // Add debt payments as their own entries
+        debtPayments.forEach((payment: any) => {
+            const key = `PAY-TRX-${payment.id}`
+            const debtItems = typeof payment.dette.items === 'string'
+                ? JSON.parse(payment.dette.items)
+                : payment.dette.items
+
+            groupedData[key] = {
+                transactionId: key,
+                date: payment.date,
+                nomClient: payment.dette.nomClient,
+                prenomClient: "",
+                numeroClient: payment.dette.telephone,
+                type: "VERSEMENT_DETTE",
+                items: debtItems.map((item: any) => ({
+                    ...item,
+                    total: item.prixUnitaire * item.quantite
+                })),
+                total: payment.montant,
+                note: payment.note
+            }
+        })
+
+        // Sort everything by date desc
+        const result = Object.values(groupedData).sort((a: any, b: any) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+
+        return NextResponse.json(result)
     } catch (error) {
         console.error("[SALES_HISTORY_GET]", error)
         return new NextResponse("Internal Error", { status: 500 })
