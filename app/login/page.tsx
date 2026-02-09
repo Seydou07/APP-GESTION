@@ -163,9 +163,14 @@ export default function LoginPage() {
                     <div className="pt-8 text-center border-t">
                         <p className="text-muted-foreground font-medium">
                             Vous n'avez pas encore de compte ? <br />
-                            <span className="text-primary font-black cursor-pointer hover:underline">
+                            <a
+                                href="https://soumaila-savadogo.omnia-elearning.com/contact/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary font-black hover:underline"
+                            >
                                 Contactez un administrateur
-                            </span>
+                            </a>
                         </p>
                     </div>
                 </div>
