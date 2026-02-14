@@ -139,3 +139,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+
+  [data-sonner-toaster],
+  .toaster,
+  .sonner-toast,
+  [role="status"],
+  [role="alert"],
+  div[data-radix-portal],
+  header,
+  footer,
+  aside,
+  .print-hidden {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}

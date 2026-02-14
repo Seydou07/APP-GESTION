@@ -135,7 +135,7 @@ export default function DebtsPage() {
                 throw new Error(err)
             }
 
-            toast.success("Paiement enregistré")
+            toast.success("Paiement de dette enregistré avec succès")
 
             // Trigger Receipt
             handlePrintReceipt(selectedDebt, amount, newBalance)
@@ -172,6 +172,35 @@ export default function DebtsPage() {
             default:
                 return null
         }
+    }
+
+    if (receiptData) {
+        return (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+                <div className="flex items-center justify-between print:hidden">
+                    <h2 className="text-2xl font-black tracking-tight">Reçu de Paiement</h2>
+                    <Button
+                        variant="outline"
+                        onClick={() => setReceiptData(null)}
+                        className="rounded-xl gap-2"
+                    >
+                        <History className="w-4 h-4" /> Retour aux dettes
+                    </Button>
+                </div>
+
+                <Receipt data={receiptData} />
+
+                <div className="text-center print:hidden pt-8">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setReceiptData(null)}
+                        className="rounded-xl text-muted-foreground hover:text-primary"
+                    >
+                        Fermer et retourner à la liste
+                    </Button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -447,29 +476,6 @@ export default function DebtsPage() {
                                         </TableBody>
                                     </Table>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-
-            {/* Receipt Modal */}
-            <Dialog open={!!receiptData} onOpenChange={(open) => !open && setReceiptData(null)}>
-                <DialogContent className="max-w-lg bg-transparent border-none shadow-none p-6 text-foreground max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <DialogTitle className="sr-only">Reçu de Paiement</DialogTitle>
-                    <DialogDescription className="sr-only">Détails du règlement effectué</DialogDescription>
-                    {receiptData && (
-                        <div className="relative">
-                            <Receipt data={receiptData} />
-                            <div className="absolute top-4 right-4 print:hidden">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setReceiptData(null)}
-                                    className="bg-white/80 backdrop-blur-sm rounded-full"
-                                >
-                                    <Plus className="w-5 h-5 rotate-45" />
-                                </Button>
                             </div>
                         </div>
                     )}

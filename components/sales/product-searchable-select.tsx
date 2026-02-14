@@ -61,7 +61,7 @@ export function ProductSearchableSelect({ products, onSelect, selectedProductId 
 
             {/* Dropdown Panel */}
             {isOpen && (
-                <div className="absolute z-50 w-full mt-2 overflow-hidden bg-white border rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div className="absolute z-50 w-full mt-2 overflow-hidden bg-popover text-popover-foreground border rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
                     {/* Design Header as requested by user image */}
                     <div className="bg-gray-600 text-white px-4 py-3 text-sm font-bold flex items-center justify-between">
                         <span>Sélectionner</span>

@@ -11,9 +11,53 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Palette, Globe, Image as ImageIcon } from "lucide-react"
+import { Palette, Globe, Image as ImageIcon, Sun, Moon, Monitor } from "lucide-react"
+import { useTheme } from "next-themes"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type SettingsFormValues = z.infer<typeof settingsSchema>
+
+const ThemeSelector = () => {
+    const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
+
+    // Avoid hydration mismatch
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <div className="h-10 w-full bg-muted animate-pulse rounded-xl" />
+    }
+
+    return (
+        <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className="rounded-xl h-12 w-full md:w-[240px]">
+                <SelectValue placeholder="Choisir un thème" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+                <SelectItem value="light">
+                    <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4" />
+                        <span>Clair (Lumineux)</span>
+                    </div>
+                </SelectItem>
+                <SelectItem value="dark">
+                    <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4" />
+                        <span>Sombre (Nuit)</span>
+                    </div>
+                </SelectItem>
+                <SelectItem value="system">
+                    <div className="flex items-center gap-2">
+                        <Monitor className="w-4 h-4" />
+                        <span>Système (Auto)</span>
+                    </div>
+                </SelectItem>
+            </SelectContent>
+        </Select>
+    )
+}
 
 export default function SettingsPage() {
     const router = useRouter()
@@ -93,6 +137,24 @@ export default function SettingsPage() {
                                         Upload
                                     </Button>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl shadow-sm border-none bg-background">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Palette className="w-5 h-5" />
+                                Apparence
+                            </CardTitle>
+                            <CardDescription>
+                                Personnalisez le thème de votre interface
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Thème de l'application</Label>
+                                <ThemeSelector />
                             </div>
                         </CardContent>
                     </Card>

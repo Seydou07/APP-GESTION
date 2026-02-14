@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { Search, Calendar, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info, CreditCard } from "lucide-react"
+import { Search, Calendar, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info, CreditCard, Printer, History } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Receipt } from "@/components/sales/receipt"
 import {
     Table,
     TableBody,
@@ -39,6 +40,7 @@ export default function HistoryPage() {
     const [selectedSale, setSelectedSale] = useState<any>(null)
     const [expenses, setExpenses] = useState(0)
     const [searchMounted, setSearchMounted] = useState(false)
+    const [receiptData, setReceiptData] = useState<any>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -115,6 +117,53 @@ export default function HistoryPage() {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+    }
+
+    const handleRePrint = (sale: any) => {
+        const isDebt = sale.type === "VERSEMENT_DETTE"
+
+        setReceiptData({
+            title: isDebt ? "Reçu de Paiement" : "Reçu de Vente",
+            reference: sale.transactionId,
+            items: sale.items,
+            client: sale.nomClient || "Client Comptoir",
+            date: format(new Date(sale.date), "dd/MM/yyyy HH:mm"),
+            total: sale.total,
+            footerMessage: isDebt ? "Merci pour votre paiement !" : "Merci pour votre achat !",
+            extraInfo: isDebt ? [
+                { label: "Type", value: "Règlement de dette" },
+                { label: "Note", value: sale.note || "N/A" }
+            ] : undefined
+        })
+    }
+
+    if (receiptData) {
+        return (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+                <div className="flex items-center justify-between print:hidden">
+                    <h2 className="text-2xl font-black tracking-tight">Réimpression du Reçu</h2>
+                    <Button
+                        variant="outline"
+                        onClick={() => setReceiptData(null)}
+                        className="rounded-xl gap-2"
+                    >
+                        <History className="w-4 h-4" /> Retour à l'historique
+                    </Button>
+                </div>
+
+                <Receipt data={receiptData} />
+
+                <div className="text-center print:hidden pt-8">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setReceiptData(null)}
+                        className="rounded-xl text-muted-foreground hover:text-primary"
+                    >
+                        Fermer et retourner à la liste
+                    </Button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -392,6 +441,16 @@ export default function HistoryPage() {
                                                         </TableBody>
                                                     </Table>
                                                 </div>
+                                            </div>
+
+                                            <div className="flex justify-end gap-3 px-1 pt-4 border-t">
+                                                <Button
+                                                    onClick={() => handleRePrint(sale)}
+                                                    className="rounded-xl font-bold gap-2 shadow-md hover:shadow-lg transition-all"
+                                                >
+                                                    <Printer className="w-4 h-4" />
+                                                    Réimprimer Reçu
+                                                </Button>
                                             </div>
                                         </div>
                                     </DialogContent>

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Printer, Home } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 import {
     Table,
     TableBody,
@@ -38,11 +39,12 @@ interface ReceiptProps {
 
 export function Receipt({ data, showButtons = true }: ReceiptProps) {
     const handlePrint = () => {
+        toast.dismiss()
         window.print()
     }
 
     return (
-        <div className="max-w-md mx-auto bg-white p-8 sm:p-10 rounded-2xl shadow-2xl border border-gray-100 print:shadow-none print:border-none print:p-0 print:mx-0 print:w-full">
+        <div className="max-w-md mx-auto bg-white text-black dark:bg-white dark:text-black p-8 sm:p-10 rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 print:shadow-none print:border-none print:p-0 print:mx-0 print:w-full">
             <div className="flex flex-col items-center mb-8">
                 {data.logoUrl ? (
                     <img src={data.logoUrl} alt="Logo" className="w-24 h-auto mb-4" />
@@ -69,7 +71,7 @@ export function Receipt({ data, showButtons = true }: ReceiptProps) {
                             </p>
                         </div>
                     )}
-                    <p className="text-[10px] text-muted-foreground font-medium mt-1">{data.date}</p>
+                    <p className="text-[10px] text-gray-500 font-medium mt-1">{data.date}</p>
                 </div>
             </div>
 
@@ -78,13 +80,13 @@ export function Receipt({ data, showButtons = true }: ReceiptProps) {
                 <div className="space-y-2">
                     {data.client && (
                         <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Bénéficiaire/Client:</span>
+                            <span className="text-gray-500">Bénéficiaire/Client:</span>
                             <span className="font-bold uppercase">{data.client}</span>
                         </div>
                     )}
                     {data.extraInfo?.map((info, idx) => (
                         <div key={idx} className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{info.label}:</span>
+                            <span className="text-gray-500">{info.label}:</span>
                             <span className="font-bold">{info.value}</span>
                         </div>
                     ))}
@@ -115,7 +117,7 @@ export function Receipt({ data, showButtons = true }: ReceiptProps) {
                 {/* Total Section */}
                 <div className="border-t-2 border-dashed border-gray-200 pt-4 mt-2">
                     <div className="flex justify-between items-center">
-                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Total Payé</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-500">Total Payé</span>
                         <span className="text-2xl font-black text-primary">{data.total.toLocaleString()} FCFA</span>
                     </div>
                 </div>
@@ -128,11 +130,11 @@ export function Receipt({ data, showButtons = true }: ReceiptProps) {
 
                 <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="space-y-1">
-                        <div className="text-[8px] uppercase font-bold text-muted-foreground">Signature Client</div>
+                        <div className="text-[8px] uppercase font-bold text-gray-500">Signature Client</div>
                         <div className="h-10 border-b border-gray-200"></div>
                     </div>
                     <div className="space-y-1">
-                        <div className="text-[8px] uppercase font-bold text-muted-foreground">Signature K.M.BOMI</div>
+                        <div className="text-[8px] uppercase font-bold text-gray-500">Signature K.M.BOMI</div>
                         <div className="h-10 border-b border-gray-200"></div>
                     </div>
                 </div>
