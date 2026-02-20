@@ -30,6 +30,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Pagination } from "@/components/ui/pagination"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function HistoryPage() {
     const [sales, setSales] = useState([])
@@ -193,57 +194,68 @@ export default function HistoryPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
-                        <TrendingUp className="w-6 h-6" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Filtré</p>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-primary cursor-help transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                                Montant total cumulé de toutes les transactions sur la période sélectionnée.
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
-                    <h3 className="text-2xl font-black">{stats.total.toLocaleString()} F</h3>
-                </div>
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600">
-                        <ShoppingBag className="w-6 h-6" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ventes</p>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-primary cursor-help transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                                Nombre total de transactions (ventes groupées) enregistrées sur la période.
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
-                    <h3 className="text-2xl font-black">{stats.count}</h3>
-                </div>
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                        <User className="w-6 h-6" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Marge Nette</p>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-primary cursor-help transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                                Ventes totales moins dépenses (salaires, commissions, frais). Représente votre bénéfice réel.
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
-                    <h3 className="text-2xl font-black">{Math.round(stats.margin).toLocaleString()} F</h3>
-                </div>
+                <Card className="rounded-2xl shadow-sm border-none bg-blue-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4" />
+                            Total Filtré
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Info className="w-3.5 h-3.5 text-blue-600/50 hover:text-blue-600 cursor-help transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                                    Montant total cumulé de toutes les transactions sur la période sélectionnée.
+                                </TooltipContent>
+                            </Tooltip>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-black text-blue-900">{stats.total.toLocaleString()} F</p>
+                        <p className="text-xs text-blue-600 mt-1">Chiffre d'affaires</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl shadow-sm border-none bg-amber-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                            <ShoppingBag className="w-4 h-4" />
+                            Ventes
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Info className="w-3.5 h-3.5 text-amber-600/50 hover:text-amber-600 cursor-help transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                                    Nombre total de transactions (ventes groupées) enregistrées sur la période.
+                                </TooltipContent>
+                            </Tooltip>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-black text-amber-900">{stats.count}</p>
+                        <p className="text-xs text-amber-600 mt-1">Nombre d'opérations</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl shadow-sm border-none bg-emerald-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
+                            <User className="w-4 h-4" />
+                            Marge Nette
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Info className="w-3.5 h-3.5 text-emerald-600/50 hover:text-emerald-600 cursor-help transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                                    Ventes totales moins dépenses (salaires, commissions, frais). Représente votre bénéfice réel.
+                                </TooltipContent>
+                            </Tooltip>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-black text-emerald-900">{Math.round(stats.margin).toLocaleString()} F</p>
+                        <p className="text-xs text-emerald-600 mt-1">Profit estimé</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="bg-background rounded-3xl shadow-sm border p-8 space-y-8">

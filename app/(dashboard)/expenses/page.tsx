@@ -29,6 +29,7 @@ import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 import { formatCompactNumber } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const CATEGORIES = [
     "LOYER", "EAU", "ELECTRICITE", "SALAIRE", "NOURRITURE",
@@ -217,29 +218,35 @@ export default function ExpensesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2 group hover:border-primary/50 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                        <Calendar className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Dépenses du Mois</p>
-                        <h3 className="text-2xl font-black text-primary" title={monthlyTotal.toLocaleString() + " F"}>
+                <Card className="rounded-2xl shadow-sm border-none bg-indigo-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            Dépenses du Mois
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-black text-indigo-900">
                             {monthlyTotal > 999999 ? formatCompactNumber(monthlyTotal) : monthlyTotal.toLocaleString()} F
-                        </h3>
-                    </div>
-                </div>
+                        </p>
+                        <p className="text-xs text-indigo-600 mt-1">Total période mensuelle</p>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-background p-6 rounded-3xl border shadow-sm space-y-2 group hover:border-destructive/50 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-red-600">
-                        <TrendingDown className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Filtré</p>
-                        <h3 className="text-2xl font-black text-destructive" title={totalExpenses.toLocaleString() + " F"}>
+                <Card className="rounded-2xl shadow-sm border-none bg-red-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-bold text-red-600 uppercase tracking-widest flex items-center gap-2">
+                            <TrendingDown className="w-4 h-4" />
+                            Total Filtré
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-black text-red-900">
                             {totalExpenses > 999999 ? formatCompactNumber(totalExpenses) : totalExpenses.toLocaleString()} F
-                        </h3>
-                    </div>
-                </div>
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">Somme des éléments affichés</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="bg-background rounded-3xl shadow-sm border p-8 space-y-8">
