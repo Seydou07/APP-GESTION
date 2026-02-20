@@ -28,12 +28,22 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 import { Receipt } from "@/components/sales/receipt"
+import { Pagination } from "@/components/ui/pagination"
 
 export default function EmployeesPage() {
     const [employees, setEmployees] = useState([])
     const [payments, setPayments] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+
+    // Pagination (employees list + payments history)
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [paymentsPage, setPaymentsPage] = useState(1)
+    const [paymentsPageSize, setPaymentsPageSize] = useState(10)
+
+    useEffect(() => setPage(1), [searchTerm, pageSize, employees])
+    useEffect(() => setPaymentsPage(1), [paymentsPageSize, payments])
 
     // Dialog states
     const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false)
@@ -59,6 +69,12 @@ export default function EmployeesPage() {
         fetchData()
         fetch("/api/settings").then(res => res.json()).then(setSettings)
     }, [])
+
+    // derived lists for pagination
+    const filteredEmployees = employees.filter((e: any) => e.nom.toLowerCase().includes(searchTerm.toLowerCase()))
+    const displayedEmployees = filteredEmployees.slice((page - 1) * pageSize, page * pageSize)
+
+    const displayedPayments = payments.slice((paymentsPage - 1) * paymentsPageSize, paymentsPage * paymentsPageSize)
 
     const fetchData = async () => {
         setLoading(true)
@@ -229,7 +245,7 @@ export default function EmployeesPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {loading ? <TableRow><TableCell colSpan={5} className="text-center py-8">Chargement...</TableCell></TableRow> :
-                                        employees.filter((e: any) => e.nom.toLowerCase().includes(searchTerm.toLowerCase())).map((emp: any) => (
+                                        displayedEmployees.map((emp: any) => (
                                             <TableRow key={emp.id} className="hover:bg-muted/20">
                                                 <TableCell className="pl-6 font-medium">
                                                     <div className="flex items-center gap-3">
@@ -255,6 +271,19 @@ export default function EmployeesPage() {
                                 </TableBody>
                             </Table>
                         </div>
+
+                        {/* employees pagination */}
+                        {filteredEmployees.length > pageSize && (
+                            <div className="mt-4">
+                                <Pagination
+                                    total={filteredEmployees.length}
+                                    page={page}
+                                    pageSize={pageSize}
+                                    onPageChange={setPage}
+                                    onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </TabsContent>
 
@@ -274,7 +303,7 @@ export default function EmployeesPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {payments.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Aucun paiement enregistré.</TableCell></TableRow> :
-                                        payments.map((pay: any) => (
+                                        displayedPayments.map((pay: any) => (
                                             <TableRow key={pay.id}>
                                                 <TableCell className="pl-6">{format(new Date(pay.date), "dd/MM/yyyy")}</TableCell>
                                                 <TableCell className="text-xs font-mono text-muted-foreground">{pay.reference || "-"}</TableCell>
@@ -291,6 +320,19 @@ export default function EmployeesPage() {
                                 </TableBody>
                             </Table>
                         </div>
+
+                        {/* payments pagination */}
+                        {payments.length > paymentsPageSize && (
+                            <div className="mt-4">
+                                <Pagination
+                                    total={payments.length}
+                                    page={paymentsPage}
+                                    pageSize={paymentsPageSize}
+                                    onPageChange={setPaymentsPage}
+                                    onPageSizeChange={(s) => { setPaymentsPageSize(s); setPaymentsPage(1) }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </TabsContent>
             </Tabs>

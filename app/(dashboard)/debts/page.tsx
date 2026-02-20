@@ -27,11 +27,18 @@ import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 import { Receipt } from "@/components/sales/receipt"
 import { cn } from "@/lib/utils"
+import { Pagination } from "@/components/ui/pagination"
 
 export default function DebtsPage() {
     const [debts, setDebts] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+
+    // pagination
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+
+    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, debts])
 
     // Filter state
     const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"))
@@ -153,6 +160,8 @@ export default function DebtsPage() {
         d.nomClient.toLowerCase().includes(searchTerm.toLowerCase()) ||
         d.telephone.includes(searchTerm)
     )
+
+    const displayedDebts = filteredDebts.slice((page - 1) * pageSize, page * pageSize) 
 
     const totalDettes = filteredDebts.reduce((acc, d: any) => acc + (d.montantTotal - d.montantVerse), 0)
 
@@ -292,7 +301,7 @@ export default function DebtsPage() {
                                 <TableRow><TableCell colSpan={7} className="text-center py-10">Chargement...</TableCell></TableRow>
                             ) : filteredDebts.length === 0 ? (
                                 <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Aucune dette trouvée.</TableCell></TableRow>
-                            ) : filteredDebts.map((d: any) => (
+                            ) : displayedDebts.map((d: any) => (
                                 <TableRow key={d.id} className="hover:bg-muted/20">
                                     <TableCell className="pl-6 font-medium">
                                         <div className="flex flex-col">
@@ -338,6 +347,21 @@ export default function DebtsPage() {
                                 </TableRow>
                             ))}
                         </TableBody>
+                    </Table>
+                </div>
+
+                {/* debts pagination */}
+                {filteredDebts.length > pageSize && (
+                    <div className="mt-4">
+                        <Pagination
+                            total={filteredDebts.length}
+                            page={page}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                        />
+                    </div>
+                )
                     </Table>
                 </div>
             </div>

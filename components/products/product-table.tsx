@@ -15,6 +15,7 @@ import { MoreHorizontal, Plus, Search, Pencil, Eye, Box, Trash2, AlertTriangle }
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { Pagination } from "@/components/ui/pagination"
 
 import { ProductDialog } from "./product-dialog"
 
@@ -26,6 +27,13 @@ export function ProductTable() {
     const [productToDelete, setProductToDelete] = useState<number | null>(null)
     const [selectedProduct, setSelectedProduct] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
+
+    // Pagination
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+
+    // reset page when filters/data change
+    useEffect(() => setPage(1), [searchTerm, products, pageSize])
 
     const fetchProducts = () => {
         setLoading(true)
@@ -120,52 +128,42 @@ export function ProductTable() {
                                     {searchTerm ? "Aucun produit ne correspond à votre recherche" : "Aucun produit trouvé"}
                                 </TableCell>
                             </TableRow>
-                        ) : filteredProducts.map((product: any) => (
-                            <TableRow key={product.id} className="hover:bg-muted/10 transition-colors">
-                                <TableCell className="font-bold pl-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
-                                            <Box className="w-4 h-4" />
-                                        </div>
-                                        {product.designation}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="font-mono">{product.prixUnitaire.toLocaleString()} F</TableCell>
+                        ) : filteredProducts.slice((page - 1) * pageSize, page * pageSize).map((product: any) => (
+                            <TableRow key={product.id}>
+                                <TableCell className="font-medium">{product.designation}</TableCell>
+                                <TableCell>{product.prixUnitaire} F</TableCell>
                                 <TableCell>
                                     <span className={cn(
-                                        "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter",
-                                        product.quantite <= product.seuilAlerte ? "bg-red-100 text-red-600 border border-red-200" : "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                        "px-3 py-1 rounded-full text-xs font-bold",
+                                        product.quantite <= product.seuilAlerte ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
                                     )}>
-                                        {product.quantite} en stock
+                                        {product.quantite}
                                     </span>
                                 </TableCell>
-                                <TableCell>
-                                    <span className="text-xs font-medium bg-muted px-2 py-1 rounded-md text-muted-foreground uppercase">
-                                        {product.categorie || "Divers"}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="text-right pr-6">
-                                    <div className="flex justify-end gap-1">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="rounded-xl hover:bg-primary/10 hover:text-primary transition-colors">
-                                            <Pencil className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() => {
-                                                setProductToDelete(product.id)
-                                                setIsConfirmOpen(true)
-                                            }}
-                                            className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
+                                <TableCell className="text-muted-foreground">{product.categorie || "-"}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="rounded-full">
+                                        <Plus className="w-4 h-4" />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
+
+                {/* Pagination */}
+                {filteredProducts.length > pageSize && (
+                    <div className="border-t">
+                        <Pagination
+                            total={filteredProducts.length}
+                            page={page}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                            sizes={[10, 20, 50]}
+                        />
+                    </div>
+                )}
             </div>
 
             <ConfirmDialog

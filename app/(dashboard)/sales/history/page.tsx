@@ -29,6 +29,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Pagination } from "@/components/ui/pagination"
 
 export default function HistoryPage() {
     const [sales, setSales] = useState([])
@@ -41,6 +42,12 @@ export default function HistoryPage() {
     const [expenses, setExpenses] = useState(0)
     const [searchMounted, setSearchMounted] = useState(false)
     const [receiptData, setReceiptData] = useState<any>(null)
+
+    // pagination
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+
+    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, sales])
 
     useEffect(() => {
         setMounted(true)
@@ -87,6 +94,8 @@ export default function HistoryPage() {
     const filteredSales = useMemo(() => {
         return sales // Filtering is handled by the API now for performance
     }, [sales])
+
+    const displayedSales = filteredSales.slice((page - 1) * pageSize, page * pageSize) 
 
     const stats = useMemo(() => {
         const total = filteredSales.reduce((sum, sale: any) => sum + sale.total, 0)
@@ -305,7 +314,7 @@ export default function HistoryPage() {
                                         Aucune vente trouvée pour ces critères.
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredSales.map((sale: any) => (
+                            ) : displayedSales.map((sale: any) => (
                                 <Dialog key={sale.transactionId}>
                                     <DialogTrigger asChild>
                                         <TableRow
@@ -456,6 +465,22 @@ export default function HistoryPage() {
                                     </DialogContent>
                                 </Dialog>
                             ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* sales pagination */}
+                {filteredSales.length > pageSize && (
+                    <div className="mt-4">
+                        <Pagination
+                            total={filteredSales.length}
+                            page={page}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                        />
+                    </div>
+                )
                         </TableBody>
                     </Table>
                 </div>

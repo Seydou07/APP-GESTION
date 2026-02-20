@@ -28,6 +28,7 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { toast } from "sonner"
 import { formatCompactNumber } from "@/lib/utils"
+import { Pagination } from "@/components/ui/pagination"
 
 const CATEGORIES = [
     "LOYER", "EAU", "ELECTRICITE", "SALAIRE", "NOURRITURE",
@@ -41,6 +42,12 @@ export default function ExpensesPage() {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
     const [selectedExpense, setSelectedExpense] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
+
+    // pagination
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+
+    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, expenses])
 
     // Filter state
     const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"))
@@ -122,6 +129,8 @@ export default function ExpensesPage() {
         ex.libelle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ex.categorie.toLowerCase().includes(searchTerm.toLowerCase())
     )
+
+    const displayedExpenses = filteredExpenses.slice((page - 1) * pageSize, page * pageSize)
 
     const totalExpenses = filteredExpenses.reduce((acc, curr: any) => acc + curr.montant, 0)
 
@@ -293,7 +302,7 @@ export default function ExpensesPage() {
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">Aucune dépense trouvée.</TableCell>
                                 </TableRow>
-                            ) : filteredExpenses.map((ex: any) => (
+                            ) : displayedExpenses.map((ex: any) => (
                                 <TableRow key={ex.id} className="hover:bg-muted/20">
                                     <TableCell className="pl-8 font-medium">
                                         {format(new Date(ex.date), "dd MMM yyyy", { locale: fr })}
@@ -328,6 +337,19 @@ export default function ExpensesPage() {
                         </TableBody>
                     </Table>
                 </div>
+
+                {/* expenses pagination */}
+                {filteredExpenses.length > pageSize && (
+                    <div className="mt-4">
+                        <Pagination
+                            total={filteredExpenses.length}
+                            page={page}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                        />
+                    </div>
+                )
             </div>
 
             {/* Detail Modal */}
