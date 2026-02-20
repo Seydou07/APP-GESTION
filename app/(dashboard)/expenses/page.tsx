@@ -47,12 +47,12 @@ export default function ExpensesPage() {
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(10)
 
-    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, expenses])
-
     // Filter state
     const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"))
     const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"))
     const [monthlyTotal, setMonthlyTotal] = useState(0)
+
+    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, expenses])
 
     // Form state
     const [formData, setFormData] = useState({
@@ -349,7 +349,7 @@ export default function ExpensesPage() {
                             onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
                         />
                     </div>
-                )
+                )}
             </div>
 
             {/* Detail Modal */}

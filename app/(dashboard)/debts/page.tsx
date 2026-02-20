@@ -161,7 +161,7 @@ export default function DebtsPage() {
         d.telephone.includes(searchTerm)
     )
 
-    const displayedDebts = filteredDebts.slice((page - 1) * pageSize, page * pageSize) 
+    const displayedDebts = filteredDebts.slice((page - 1) * pageSize, page * pageSize)
 
     const totalDettes = filteredDebts.reduce((acc, d: any) => acc + (d.montantTotal - d.montantVerse), 0)
 
@@ -361,9 +361,7 @@ export default function DebtsPage() {
                             onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
                         />
                     </div>
-                )
-                    </Table>
-                </div>
+                )}
             </div>
 
             {/* Payment Dialog */}

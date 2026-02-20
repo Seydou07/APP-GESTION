@@ -95,7 +95,7 @@ export default function HistoryPage() {
         return sales // Filtering is handled by the API now for performance
     }, [sales])
 
-    const displayedSales = filteredSales.slice((page - 1) * pageSize, page * pageSize) 
+    const displayedSales = filteredSales.slice((page - 1) * pageSize, page * pageSize)
 
     const stats = useMemo(() => {
         const total = filteredSales.reduce((sum, sale: any) => sum + sale.total, 0)
@@ -480,10 +480,7 @@ export default function HistoryPage() {
                             onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
                         />
                     </div>
-                )
-                        </TableBody>
-                    </Table>
-                </div>
+                )}
             </div>
         </div>
     )
