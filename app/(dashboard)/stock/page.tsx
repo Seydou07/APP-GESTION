@@ -7,11 +7,14 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Pagination } from "@/components/ui/pagination"
 
 export default function StockPage() {
     const { data: session, status } = useSession()
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(5)
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -35,6 +38,8 @@ export default function StockPage() {
     const lowStock = products.filter((p: any) => p.quantite <= p.seuilAlerte)
     const totalValue = products.reduce((acc: number, p: any) => acc + (p.prixUnitaire * p.quantite), 0)
 
+    const displayedLowStock = lowStock.slice((page - 1) * pageSize, page * pageSize)
+
     return (
         <div className="space-y-8 pb-10">
             <div className="flex flex-col">
@@ -44,7 +49,7 @@ export default function StockPage() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="rounded-2xl shadow-sm border-none bg-indigo-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-indigo-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-2">
                             <Layers className="w-4 h-4" />
@@ -57,7 +62,7 @@ export default function StockPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl shadow-sm border-none bg-emerald-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-emerald-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-2">
                             <DollarSign className="w-4 h-4" />
@@ -70,7 +75,7 @@ export default function StockPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl shadow-sm border-none bg-red-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-red-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-bold text-red-600 uppercase tracking-wider flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4" />
@@ -115,7 +120,7 @@ export default function StockPage() {
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground italic">Aucune alerte, tout est en ordre !</TableCell>
                                 </TableRow>
-                            ) : lowStock.map((p: any) => (
+                            ) : displayedLowStock.map((p: any) => (
                                 <TableRow key={p.id}>
                                     <TableCell className="font-bold">{p.designation}</TableCell>
                                     <TableCell className="text-muted-foreground">{p.categorie || "-"}</TableCell>
@@ -135,6 +140,19 @@ export default function StockPage() {
                         </TableBody>
                     </Table>
                 </div>
+
+                {lowStock.length > pageSize && (
+                    <div className="mt-6 border-t pt-6">
+                        <Pagination
+                            total={lowStock.length}
+                            page={page}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                            sizes={[5, 10, 20]}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     )

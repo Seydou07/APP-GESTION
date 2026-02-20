@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { DashboardShell } from "@/components/layout/dashboard-shell"
+import { InaugurationDisplay } from "@/components/ui/inauguration-display"
 
 export default async function DashboardLayout({
     children,
@@ -14,8 +15,11 @@ export default async function DashboardLayout({
     }
 
     return (
-        <DashboardShell userName={session.user?.name}>
-            {children}
-        </DashboardShell>
+        <>
+            <InaugurationDisplay />
+            <DashboardShell userName={session.user?.name}>
+                {children}
+            </DashboardShell>
+        </>
     )
 }

@@ -194,7 +194,7 @@ export default function HistoryPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="rounded-2xl shadow-sm border-none bg-blue-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-blue-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-1.5">
                             <TrendingUp className="w-4 h-4" />
@@ -215,7 +215,7 @@ export default function HistoryPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl shadow-sm border-none bg-amber-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-amber-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
                             <ShoppingBag className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function HistoryPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl shadow-sm border-none bg-emerald-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-emerald-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
                             <User className="w-4 h-4" />

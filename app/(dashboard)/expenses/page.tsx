@@ -218,7 +218,7 @@ export default function ExpensesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card className="rounded-2xl shadow-sm border-none bg-indigo-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-indigo-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
@@ -233,7 +233,7 @@ export default function ExpensesPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl shadow-sm border-none bg-red-50/50">
+                <Card className="rounded-2xl shadow-none border border-border bg-red-50/50">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-bold text-red-600 uppercase tracking-widest flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
