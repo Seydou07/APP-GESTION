@@ -38,12 +38,12 @@ export default function DebtsPage() {
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(10)
 
-    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, debts])
-
     // Filter state
     const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"))
     const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"))
     const [monthlyNewDebts, setMonthlyNewDebts] = useState(0)
+
+    useEffect(() => setPage(1), [searchTerm, startDate, endDate, pageSize, debts])
 
     // Payment Modal State
     const [selectedDebt, setSelectedDebt] = useState<any>(null)
