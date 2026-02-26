@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { Search, Calendar, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info, CreditCard, Printer, History } from "lucide-react"
+import { Search, Calendar, CalendarDays, FileText, ChevronRight, Eye, Download, TrendingUp, ShoppingBag, User, Info, CreditCard, Printer, History } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, isSameMonth, isSameDay } from "date-fns"
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, isSameMonth, isSameDay, subMonths } from "date-fns"
 import { fr } from "date-fns/locale"
 import { formatCompactNumber, cn } from "@/lib/utils"
 import {
@@ -31,6 +31,13 @@ import {
 } from "@/components/ui/tooltip"
 import { Pagination } from "@/components/ui/pagination"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 export default function HistoryPage() {
     const [sales, setSales] = useState([])
@@ -43,6 +50,7 @@ export default function HistoryPage() {
     const [expenses, setExpenses] = useState(0)
     const [searchMounted, setSearchMounted] = useState(false)
     const [receiptData, setReceiptData] = useState<any>(null)
+    const [selectedMonth, setSelectedMonth] = useState<string>("")
 
     // pagination
     const [page, setPage] = useState(1)
@@ -104,6 +112,27 @@ export default function HistoryPage() {
         const margin = total - expenses
         return { total, count, margin }
     }, [filteredSales, expenses])
+
+    const months = useMemo(() => {
+        const result: { value: string; label: string }[] = []
+        for (let i = 0; i <= 23; i++) {
+            const d = subMonths(new Date(), i)
+            result.push({
+                value: format(d, "yyyy-MM"),
+                label: format(d, "MMMM yyyy", { locale: fr })
+            })
+        }
+        return result
+    }, [])
+
+    const handleMonthSelect = (value: string) => {
+        setSelectedMonth(value)
+        if (value === "all" || !value) return
+        const [year, month] = value.split("-").map(Number)
+        const d = new Date(year, month - 1, 1)
+        setStartDate(format(startOfMonth(d), "yyyy-MM-dd"))
+        setEndDate(format(endOfMonth(d), "yyyy-MM-dd"))
+    }
 
     const handleExport = () => {
         const headers = ["ID Transaction", "Type", "Date", "Client", "Produits", "Montant Total"]
@@ -184,13 +213,31 @@ export default function HistoryPage() {
                     <h2 className="text-3xl font-black tracking-tight">Gestion des Ventes</h2>
                     <p className="text-muted-foreground">Pilotez votre activité et consultez les détails de chaque transaction.</p>
                 </div>
-                <Button
-                    onClick={handleExport}
-                    className="rounded-xl font-bold gap-2 shadow-lg shadow-primary/20"
-                >
-                    <Download className="w-4 h-4" />
-                    Exporter Rapport
-                </Button>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <Select value={selectedMonth} onValueChange={handleMonthSelect}>
+                        <SelectTrigger className="!h-11 py-0 w-[200px] rounded-xl border border-border bg-muted/40 font-semibold text-sm focus:ring-primary gap-2 hover:bg-muted/60 transition-colors">
+                            <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+                            <SelectValue placeholder="Filtrer par mois" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border shadow-xl">
+                            <SelectItem value="all" className="font-semibold text-muted-foreground">
+                                Tous les mois
+                            </SelectItem>
+                            {months.map((m) => (
+                                <SelectItem key={m.value} value={m.value} className="capitalize font-medium">
+                                    {m.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button
+                        onClick={handleExport}
+                        className="h-11 rounded-xl font-bold gap-2 shadow-lg shadow-primary/20"
+                    >
+                        <Download className="w-4 h-4" />
+                        Exporter Rapport
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
