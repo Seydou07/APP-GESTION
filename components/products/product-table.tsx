@@ -11,7 +11,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Plus, Search, Pencil, Eye, Box, Trash2, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, Plus, Search, Pencil, Eye, Box, Trash2, AlertTriangle, ArrowUpAZ, ArrowDownZA, ChevronsUpDown } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -27,6 +27,11 @@ export function ProductTable() {
     const [productToDelete, setProductToDelete] = useState<number | null>(null)
     const [selectedProduct, setSelectedProduct] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
+    const [sortOrder, setSortOrder] = useState<"default" | "asc" | "desc">("default")
+
+    const cycleSortOrder = () => {
+        setSortOrder(prev => prev === "default" ? "asc" : prev === "asc" ? "desc" : "default")
+    }
 
     // Pagination
     const [page, setPage] = useState(1)
@@ -75,23 +80,43 @@ export function ProductTable() {
         }
     }
 
-    // Filter products based on search term
-    const filteredProducts = products.filter((product: any) =>
-        product.designation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.categorie && product.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    // Filter + sort products
+    const filteredProducts = products
+        .filter((product: any) =>
+            product.designation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (product.categorie && product.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+        .sort((a: any, b: any) => {
+            if (sortOrder === "asc") return a.designation.localeCompare(b.designation, "fr", { sensitivity: "base" })
+            if (sortOrder === "desc") return b.designation.localeCompare(a.designation, "fr", { sensitivity: "base" })
+            return 0
+        })
 
     return (
         <div className="bg-background rounded-2xl shadow-sm border-none p-6 space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="relative w-full md:w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Rechercher un produit..."
-                        className="pl-10 rounded-xl"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Rechercher un produit..."
+                            className="pl-10 rounded-xl"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={cycleSortOrder}
+                        className={cn(
+                            "rounded-xl shrink-0 transition-all",
+                            sortOrder !== "default" && "border-primary text-primary bg-primary/5"
+                        )}
+                        title={sortOrder === "default" ? "Trier A → Z" : sortOrder === "asc" ? "Trier Z → A" : "Annuler le tri"}
+                    >
+                        {sortOrder === "asc" ? <ArrowUpAZ className="w-4 h-4" /> : sortOrder === "desc" ? <ArrowDownZA className="w-4 h-4" /> : <ChevronsUpDown className="w-4 h-4" />}
+                    </Button>
                 </div>
                 <Button onClick={handleAdd} className="rounded-xl px-6 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
                     <Plus className="w-4 h-4 mr-2" />
@@ -110,7 +135,21 @@ export function ProductTable() {
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent uppercase text-[10px] font-black tracking-widest text-muted-foreground">
-                            <TableHead className="pl-6">Designation</TableHead>
+                            <TableHead
+                                className="pl-6 cursor-pointer select-none group"
+                                onClick={cycleSortOrder}
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    Designation
+                                    {sortOrder === "asc" ? (
+                                        <ArrowUpAZ className="w-3.5 h-3.5 text-primary" />
+                                    ) : sortOrder === "desc" ? (
+                                        <ArrowDownZA className="w-3.5 h-3.5 text-primary" />
+                                    ) : (
+                                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
+                                    )}
+                                </span>
+                            </TableHead>
                             <TableHead>Prix Unitaire</TableHead>
                             <TableHead>Stock</TableHead>
                             <TableHead>Catégorie</TableHead>
