@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { startOfDay, endOfDay, parseISO } from "date-fns"
 
 export async function GET(req: Request) {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
         const { searchParams } = new URL(req.url)
@@ -29,7 +29,9 @@ export async function GET(req: Request) {
             ]
         }
 
-        const sales = await prisma.ventePersistante.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+
+        const sales = await userClient.ventePersistante.findMany({
             where,
             orderBy: {
                 date: "desc"
@@ -37,7 +39,7 @@ export async function GET(req: Request) {
         })
 
         // Fetch debt payments within same range
-        const debtPayments = await prisma.paiementDette.findMany({
+        const debtPayments = await userClient.paiementDette.findMany({
             where: {
                 date: where.date,
                 dette: query ? {
