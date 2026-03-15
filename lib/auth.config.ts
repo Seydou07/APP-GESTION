@@ -10,6 +10,7 @@ export const authConfig = {
             if (user) {
                 token.role = (user as any).role;
                 token.boutiqueId = (user as any).boutiqueId; // Storing boutiqueId in JWT
+                token.boutiqueName = (user as any).boutiqueName;
             }
             return token;
         },
@@ -18,6 +19,7 @@ export const authConfig = {
                 session.user.id = token.sub;
                 (session.user as any).role = token.role;
                 (session.user as any).boutiqueId = token.boutiqueId; // Adding boutiqueId to the session
+                (session.user as any).boutiqueName = token.boutiqueName;
             }
             return session;
         },

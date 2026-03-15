@@ -39,6 +39,7 @@ export function Sidebar() {
     const { data: session } = useSession()
 
     const isAdmin = (session?.user as any)?.role === "ADMIN"
+    const boutiqueName = (session?.user as any)?.boutiqueName || ""
 
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -68,12 +69,19 @@ export function Sidebar() {
         )}>
             {/* Sidebar Header */}
             <div className={cn(
-                "flex items-center p-6 mb-4 text-primary font-extrabold text-2xl transition-all duration-300 flex-shrink-0",
-                isSidebarCollapsed ? "justify-center px-0" : "px-6"
+                "flex flex-col items-start p-6 mb-4 transition-all duration-300 flex-shrink-0",
+                isSidebarCollapsed ? "justify-center px-0 items-center" : "px-6"
             )}>
-                <span className={isSidebarCollapsed ? "text-xl" : "ml-2"}>
-                    {isSidebarCollapsed ? "K" : "K.M.BOMI"}
-                </span>
+                <div className="flex items-center text-primary font-extrabold text-2xl">
+                    <span className={isSidebarCollapsed ? "text-xl" : "ml-2"}>
+                        {isSidebarCollapsed ? "K" : "K.M.BOMI"}
+                    </span>
+                </div>
+                {!isSidebarCollapsed && boutiqueName && (
+                    <span className="ml-2 mt-1 text-xs font-semibold text-muted-foreground whitespace-nowrap bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
+                        {boutiqueName}
+                    </span>
+                )}
             </div>
 
             {/* Scrollable Navigation */}

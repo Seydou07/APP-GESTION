@@ -21,7 +21,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const { email, password } = parsedCredentials.data;
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ 
+          where: { email },
+          include: { boutique: true }
+        });
 
         if (!user) return null;
 
@@ -34,6 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.pseudo,
             role: user.role,
             boutiqueId: user.boutiqueId,
+            boutiqueName: user.boutique?.nom || "Boutique Principale",
           } as any;
         }
 
