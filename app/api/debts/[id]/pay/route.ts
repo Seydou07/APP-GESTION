@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
 ) {
     try {
         const session = await auth()
-        if (!session) return new NextResponse("Unauthorized", { status: 401 })
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
         const params = await props.params;
         const { id } = params
@@ -20,9 +20,10 @@ export async function POST(
         }
 
         const montantPaye = Number(montant)
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
 
         // Transaction: Update Debt Status AND Record Payment
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await userClient.$transaction(async (tx) => {
             const debt = await tx.dette.findUnique({
                 where: { id: Number(id) }
             })

@@ -1,21 +1,26 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import { startOfDay, subDays, format } from "date-fns"
 import { fr } from "date-fns/locale"
 
 export async function GET() {
     try {
+        const session = await auth()
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
+        
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
         const last7Days = subDays(new Date(), 6)
 
         // Run all queries in parallel for maximum performance
         const [salesSum, productCount, uniqueClients, chartSales] = await Promise.all([
-            prisma.ventePersistante.aggregate({
+            userClient.ventePersistante.aggregate({
                 _sum: {
                     total: true
                 }
             }),
-            prisma.produit.count(),
-            prisma.ventePersistante.groupBy({
+            userClient.produit.count(),
+            userClient.ventePersistante.groupBy({
                 by: ['numeroClient'],
                 where: {
                     numeroClient: {
@@ -23,7 +28,7 @@ export async function GET() {
                     }
                 }
             }),
-            prisma.ventePersistante.findMany({
+            userClient.ventePersistante.findMany({
                 where: {
                     date: {
                         gte: startOfDay(last7Days)

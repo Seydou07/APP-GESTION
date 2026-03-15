@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { startOfDay, subDays } from "date-fns"
 
 export async function GET() {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
         const last30Days = subDays(new Date(), 29)
         const todayStart = startOfDay(new Date())
 
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+
         const [rawTopProducts, allProducts, todaySales, debtStats] = await Promise.all([
             // Top produits vendus (30 derniers jours)
-            prisma.ventePersistante.groupBy({
+            userClient.ventePersistante.groupBy({
                 by: ["designation"],
                 where: { date: { gte: last30Days } },
                 _sum: { quantite: true, total: true },
@@ -22,7 +24,7 @@ export async function GET() {
             }),
 
             // Tous les produits pour filtrer les alertes en JS
-            prisma.produit.findMany({
+            userClient.produit.findMany({
                 select: {
                     id: true,
                     designation: true,
@@ -34,13 +36,13 @@ export async function GET() {
             }),
 
             // Ventes par heure aujourd'hui
-            prisma.ventePersistante.findMany({
+            userClient.ventePersistante.findMany({
                 where: { date: { gte: todayStart } },
                 select: { date: true, total: true },
             }),
 
             // Stats dettes
-            prisma.dette.groupBy({
+            userClient.dette.groupBy({
                 by: ["statut"],
                 _count: { id: true },
                 _sum: { montantTotal: true, montantVerse: true },
@@ -49,11 +51,11 @@ export async function GET() {
 
         // Produits sous seuil alerte
         const stockAlerts = allProducts
-            .filter(p => p.quantite <= p.seuilAlerte)
+            .filter((p: any) => p.quantite <= p.seuilAlerte)
             .slice(0, 8)
 
         // Format top products
-        const topProducts = rawTopProducts.map(p => ({
+        const topProducts = rawTopProducts.map((p: any) => ({
             name: p.designation.length > 22 ? p.designation.substring(0, 22) + "…" : p.designation,
             fullName: p.designation,
             quantite: p._sum.quantite || 0,
@@ -62,7 +64,7 @@ export async function GET() {
 
         // Format hourly sales (6h–22h)
         const hoursMap: Record<number, number> = {}
-        todaySales.forEach(s => {
+        todaySales.forEach((s: any) => {
             const h = new Date(s.date).getHours()
             hoursMap[h] = (hoursMap[h] || 0) + s.total
         })
@@ -73,10 +75,10 @@ export async function GET() {
 
         // Format debt stats
         const debtSummary = {
-            impaye: debtStats.find(d => d.statut === "IMPAYE")?._count?.id || 0,
-            partiel: debtStats.find(d => d.statut === "PARTIEL")?._count?.id || 0,
-            regle: debtStats.find(d => d.statut === "REGLE")?._count?.id || 0,
-            totalDu: debtStats.reduce((sum, d) => {
+            impaye: debtStats.find((d: any) => d.statut === "IMPAYE")?._count?.id || 0,
+            partiel: debtStats.find((d: any) => d.statut === "PARTIEL")?._count?.id || 0,
+            regle: debtStats.find((d: any) => d.statut === "REGLE")?._count?.id || 0,
+            totalDu: debtStats.reduce((sum: number, d: any) => {
                 if (d.statut === "REGLE") return sum
                 return sum + ((d._sum.montantTotal || 0) - (d._sum.montantVerse || 0))
             }, 0),

@@ -1,11 +1,15 @@
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function GET() {
     try {
-        const settings = await prisma.appSetting.findFirst()
+        const session = await auth()
+        const boutiqueId = session?.user ? (session.user as any).boutiqueId : 1;
+        const userClient = getPrismaUserClient(boutiqueId);
+
+        const settings = await userClient.appSetting.findFirst()
         return NextResponse.json(settings || {
             appName: "K.M.BOMI",
             logoUrl: "",
@@ -31,16 +35,17 @@ export async function POST(req: Request) {
         const body = await req.json()
         const { appName, logoUrl } = body
 
-        const settings = await prisma.appSetting.findFirst()
+        const userClient = getPrismaUserClient(user.boutiqueId)
+        const settings = await userClient.appSetting.findFirst()
 
         let result
         if (settings) {
-            result = await prisma.appSetting.update({
+            result = await userClient.appSetting.update({
                 where: { id: settings.id },
                 data: { appName, logoUrl },
             })
         } else {
-            result = await prisma.appSetting.create({
+            result = await userClient.appSetting.create({
                 data: { appName, logoUrl },
             })
         }

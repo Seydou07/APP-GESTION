@@ -9,6 +9,7 @@ export const authConfig = {
         async jwt({ token, user }) {
             if (user) {
                 token.role = (user as any).role;
+                token.boutiqueId = (user as any).boutiqueId; // Storing boutiqueId in JWT
             }
             return token;
         },
@@ -16,6 +17,7 @@ export const authConfig = {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
                 (session.user as any).role = token.role;
+                (session.user as any).boutiqueId = token.boutiqueId; // Adding boutiqueId to the session
             }
             return session;
         },

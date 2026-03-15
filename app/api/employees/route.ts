@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -9,7 +9,8 @@ export async function GET(req: Request) {
             return new NextResponse("Unauthorized", { status: 403 })
         }
 
-        const employees = await prisma.employe.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const employees = await userClient.employe.findMany({
             orderBy: {
                 nom: 'asc'
             }
@@ -36,7 +37,8 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 })
         }
 
-        const employee = await prisma.employe.create({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const employee = await userClient.employe.create({
             data: {
                 nom,
                 prenom,

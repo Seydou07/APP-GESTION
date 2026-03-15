@@ -29,11 +29,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (passwordsMatch) {
           return {
-            id: user.id,
+            id: user.id.toString(),
             email: user.email,
             name: user.pseudo,
             role: user.role,
-          };
+            boutiqueId: user.boutiqueId,
+          } as any;
         }
 
         return null;

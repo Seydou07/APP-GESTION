@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { suggestionSchema } from "@/lib/validations"
 
@@ -15,8 +15,11 @@ export async function POST(req: Request) {
         const auteur = validatedData.auteur || session?.user?.name || "Anonyme"
         const email = validatedData.email || session?.user?.email || null
 
+        const boutiqueId = session?.user ? (session.user as any).boutiqueId : 1;
+        const userClient = getPrismaUserClient(boutiqueId);
+
         // Create suggestion in DB
-        const suggestion = await prisma.suggestion.create({
+        const suggestion = await userClient.suggestion.create({
             data: {
                 sujet: validatedData.sujet,
                 message: validatedData.message,

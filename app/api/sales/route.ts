@@ -1,13 +1,14 @@
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
 export async function GET() {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
-        const sales = await prisma.ventePersistante.findMany({
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
+        const sales = await userClient.ventePersistante.findMany({
             orderBy: {
                 date: "desc"
             },
@@ -22,7 +23,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
         const body = await req.json()
@@ -34,8 +35,9 @@ export async function POST(req: Request) {
 
         // Transaction to update stock and save sales
         const transactionId = `TRX-${crypto.randomUUID().substring(0, 8).toUpperCase()}`
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
 
-        const result = await prisma.$transaction(async (tx: any) => {
+        const result = await userClient.$transaction(async (tx: any) => {
             const salesResults = []
 
             for (const item of items) {
@@ -109,8 +111,6 @@ export async function POST(req: Request) {
 
             return salesResults
         })
-
-        return NextResponse.json(result)
 
         return NextResponse.json(result)
     } catch (error: any) {

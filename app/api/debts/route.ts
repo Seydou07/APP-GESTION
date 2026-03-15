@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
     try {
         const session = await auth()
-        if (!session) return new NextResponse("Unauthorized", { status: 401 })
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
         const { searchParams } = new URL(req.url)
         const status = searchParams.get("status")
@@ -24,7 +24,8 @@ export async function GET(req: Request) {
             }
         }
 
-        const debts = await prisma.dette.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const debts = await userClient.dette.findMany({
             where,
             orderBy: {
                 updatedAt: 'desc'
@@ -44,7 +45,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const session = await auth()
-        if (!session) return new NextResponse("Unauthorized", { status: 401 })
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
         const body = await req.json()
         const { items, nomClient, telephone } = body
@@ -57,9 +58,10 @@ export async function POST(req: Request) {
         }
 
         const totalAmount = items.reduce((sum: number, item: any) => sum + ((item.prixUnitaire || 0) * item.quantite), 0)
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
 
         // Transaction: Deduct Stock AND Create Debt Record
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await userClient.$transaction(async (tx) => {
             // 1. Deduct Stock (Similar to sales)
             for (const item of items) {
                 const produit = await tx.produit.findUnique({

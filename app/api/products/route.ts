@@ -1,13 +1,14 @@
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
 export async function GET() {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
 
     try {
-        const products = await prisma.produit.findMany({
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
+        const products = await userClient.produit.findMany({
             orderBy: { createdAt: "desc" },
         })
         return NextResponse.json(products)
@@ -18,12 +19,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
-    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
+    if (session.user.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()
-        const product = await prisma.produit.create({
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
+        const product = await userClient.produit.create({
             data: body,
         })
         return NextResponse.json(product)
@@ -34,8 +36,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
-    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
+    if (session.user.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()
@@ -45,7 +47,8 @@ export async function PUT(req: Request) {
             return new NextResponse("ID manquant", { status: 400 })
         }
 
-        const product = await prisma.produit.update({
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
+        const product = await userClient.produit.update({
             where: { id: Number(id) },
             data,
         })
@@ -58,8 +61,8 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
     const session = await auth()
-    if (!session) return new NextResponse("Unauthorized", { status: 401 })
-    if ((session?.user as any)?.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
+    if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 })
+    if (session.user.role !== "ADMIN") return new NextResponse("Forbidden", { status: 403 })
 
     try {
         const body = await req.json()
@@ -69,7 +72,8 @@ export async function DELETE(req: Request) {
             return new NextResponse("ID manquant", { status: 400 })
         }
 
-        await prisma.produit.delete({
+        const userClient = getPrismaUserClient(session.user.boutiqueId)
+        await userClient.produit.delete({
             where: { id: Number(id) },
         })
 

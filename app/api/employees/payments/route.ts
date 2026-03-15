@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -9,7 +9,8 @@ export async function GET(req: Request) {
             return new NextResponse("Unauthorized", { status: 403 })
         }
 
-        const payments = await prisma.paiementEmploye.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const payments = await userClient.paiementEmploye.findMany({
             include: {
                 employe: true
             },
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 })
         }
 
-        const employe = await prisma.employe.findUnique({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const employe = await userClient.employe.findUnique({
             where: { id: parseInt(employeId) }
         })
 
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
         }
 
         // Transaction: Create Payment AND Create Expense
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await userClient.$transaction(async (tx) => {
             // 1. Create Payment Record
             const payment = await tx.paiementEmploye.create({
                 data: {

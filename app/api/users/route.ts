@@ -1,16 +1,17 @@
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import bcrypt from "bcrypt"
 
 export async function GET() {
     const session = await auth()
-    if (!session || (session.user as any)?.role !== "ADMIN") {
+    if (!session || !session.user || (session.user as any)?.role !== "ADMIN") {
         return new NextResponse("Unauthorized", { status: 401 })
     }
 
     try {
-        const users = await prisma.user.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const users = await userClient.user.findMany({
             select: {
                 id: true,
                 pseudo: true,
@@ -28,7 +29,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
     const session = await auth()
-    if (!session || (session.user as any)?.role !== "ADMIN") {
+    if (!session || !session.user || (session.user as any)?.role !== "ADMIN") {
         return new NextResponse("Unauthorized", { status: 401 })
     }
 
@@ -41,8 +42,9 @@ export async function POST(req: Request) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
-
-        const user = await prisma.user.create({
+        
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const user = await userClient.user.create({
             data: {
                 pseudo,
                 email,
@@ -63,7 +65,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
     const session = await auth()
-    if (!session || (session.user as any)?.role !== "ADMIN") {
+    if (!session || !session.user || (session.user as any)?.role !== "ADMIN") {
         return new NextResponse("Unauthorized", { status: 401 })
     }
 
@@ -80,7 +82,8 @@ export async function DELETE(req: Request) {
             return new NextResponse("Vous ne pouvez pas supprimer votre propre compte", { status: 400 })
         }
 
-        await prisma.user.delete({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        await userClient.user.delete({
             where: { id },
         })
 
@@ -92,7 +95,7 @@ export async function DELETE(req: Request) {
 
 export async function PATCH(req: Request) {
     const session = await auth()
-    if (!session || (session.user as any)?.role !== "ADMIN") {
+    if (!session || !session.user || (session.user as any)?.role !== "ADMIN") {
         return new NextResponse("Unauthorized", { status: 401 })
     }
 
@@ -114,7 +117,8 @@ export async function PATCH(req: Request) {
             updateData.password = await bcrypt.hash(password, 10)
         }
 
-        const user = await prisma.user.update({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const user = await userClient.user.update({
             where: { id },
             data: updateData,
         })

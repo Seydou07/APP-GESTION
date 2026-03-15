@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getPrismaUserClient } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -21,7 +21,8 @@ export async function GET(req: Request) {
             }
         }
 
-        const expenses = await prisma.depense.findMany({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const expenses = await userClient.depense.findMany({
             where,
             orderBy: {
                 date: 'desc'
@@ -49,7 +50,8 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 })
         }
 
-        const expense = await prisma.depense.create({
+        const userClient = getPrismaUserClient((session.user as any).boutiqueId);
+        const expense = await userClient.depense.create({
             data: {
                 libelle,
                 montant: parseFloat(montant),
