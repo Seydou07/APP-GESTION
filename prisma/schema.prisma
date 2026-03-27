@@ -1,0 +1,283 @@
+// Schéma Prisma pour K.M.BOMI - Système de gestion de stock et ventes
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Nouvelle table pour les boutiques (Multi-tenant)
+model Boutique {
+  id          Int      @id @default(autoincrement())
+  nom         String   @default("Boutique Principale")
+  adresse     String?
+  telephone   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  utilisateurs      User[]
+  produits          Produit[]
+  ventes            Vente[]
+  ventesPersistantes VentePersistante[]
+  historiqueStocks  HistoriqueStock[]
+  depenses          Depense[]
+  employes          Employe[]
+  paiementsEmploye  PaiementEmploye[]
+  dettes            Dette[]
+  paiementsDette    PaiementDette[]
+  suggestions       Suggestion[]
+
+  @@map("boutiques")
+}
+
+// Table des utilisateurs (authentification)
+model User {
+  id            String    @id @default(cuid())
+  pseudo        String
+  email         String    @unique
+  password      String    // Haché avec bcrypt
+  token         String?   @unique
+  role          Role      @default(VENDEUR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  boutiqueId    Int       @default(1) @map("boutique_id")
+  boutique      Boutique  @relation(fields: [boutiqueId], references: [id])
+  
+  @@map("utilisateurs")
+}
+
+enum Role {
+  ADMIN
+  VENDEUR
+}
+
+// Table des produits
+model Produit {
+  id              Int       @id @default(autoincrement())
+  designation     String    @unique
+  prixUnitaire    Float     @map("prix_unitaire")
+  quantite        Int       @default(0)
+  description     String?
+  categorie       String?
+  seuilAlerte     Int       @default(5) @map("seuil_alerte")
+  image           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  ventes          Vente[]
+  ventesHistorique VentePersistante[]
+  
+  boutiqueId      Int       @default(1) @map("boutique_id")
+  boutique        Boutique  @relation(fields: [boutiqueId], references: [id])
+  
+  @@map("produits")
+}
+
+// Table des ventes (temporaires - pour le calcul de la journée)
+model Vente {
+  id              Int       @id @default(autoincrement())
+  produitId       Int       @map("produit_id")
+  designation     String
+  prixUnitaire    Float     @map("prix_unitaire")
+  quantite        Int
+  total           Float
+  nomClient       String?   @map("nom_client")
+  prenomClient    String?   @map("prenom_client")
+  numeroClient    String?   @map("numero_client")
+  transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
+  date            DateTime  @default(now())
+  
+  // New fields for financial adjustments
+  remise          Float     @default(0)
+  commission      Float     @default(0)
+  
+  produit         Produit   @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  
+  boutiqueId      Int       @default(1) @map("boutique_id")
+  boutique        Boutique  @relation(fields: [boutiqueId], references: [id])
+  
+  @@map("ventes")
+}
+
+// Table des ventes persistantes (historique complet)
+model VentePersistante {
+  id              Int       @id @default(autoincrement())
+  produitId       Int       @map("produit_id")
+  designation     String
+  prixUnitaire    Float     @map("prix_unitaire")
+  quantite        Int
+  total           Float
+  nomClient       String?   @map("nom_client")
+  prenomClient    String?   @map("prenom_client")
+  numeroClient    String?   @map("numero_client")
+  transactionId   String?   @map("transaction_id") // ID unique pour grouper les produits d'une même vente
+  date            DateTime  @default(now())
+  createdAt       DateTime  @default(now()) @map("created_at")
+  
+  // New fields for financial adjustments
+  remise          Float     @default(0)
+  commission      Float     @default(0)
+  
+  produit         Produit   @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  
+  boutiqueId      Int       @default(1) @map("boutique_id")
+  boutique        Boutique  @relation(fields: [boutiqueId], references: [id])
+  
+  @@index([date])
+  @@index([nomClient])
+  @@index([transactionId])
+  @@map("ventes_persistantes")
+}
+
+// Table pour l'historique des modifications de stock
+model HistoriqueStock {
+  id              Int       @id @default(autoincrement())
+  produitId       Int       @map("produit_id")
+  designation     String
+  quantiteAvant   Int       @map("quantite_avant")
+  quantiteApres   Int       @map("quantite_apres")
+  difference      Int
+  typeOperation   TypeOperation @map("type_operation")
+  utilisateur     String?
+  date            DateTime  @default(now())
+  
+  boutiqueId      Int       @default(1) @map("boutique_id")
+  boutique        Boutique  @relation(fields: [boutiqueId], references: [id])
+  
+  @@index([produitId])
+  @@map("historique_stock")
+}
+
+// Table pour la configuration de l'application
+model AppSetting {
+  id              Int       @id @default(1)
+  appName         String    @default("K.M.BOMI")
+  logoUrl         String?
+  themeColor      String    @default("#3C91E6")
+  updatedAt       DateTime  @updatedAt
+
+  @@map("app_settings")
+}
+
+// Table pour les suggestions et idées d'amélioration
+model Suggestion {
+  id        Int      @id @default(autoincrement())
+  sujet     String
+  message   String   @db.Text
+  auteur    String?  // Nom ou pseudo de l'auteur (optionnel)
+  email     String?  // Email de l'auteur pour recontact (optionnel)
+  statut    String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, TERMINE
+  createdAt DateTime @default(now()) @map("created_at")
+
+  boutiqueId Int       @default(1) @map("boutique_id")
+  boutique   Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@map("suggestions")
+}
+
+enum TypeOperation {
+  AJOUT_STOCK
+  VENTE
+  CORRECTION
+  RETOUR
+}
+
+// Table des dépenses
+model Depense {
+  id          Int      @id @default(autoincrement())
+  libelle     String
+  montant     Float
+  categorie   String   // Ex: EAU, SODECI, LOYER, SALAIRE, AUTRE
+  date        DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  boutiqueId  Int       @default(1) @map("boutique_id")
+  boutique    Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@map("depenses")
+}
+
+// Table des employés
+model Employe {
+  id          Int      @id @default(autoincrement())
+  nom         String
+  prenom      String
+  poste       String?
+  telephone   String?
+  salaireBase Float    @map("salaire_base")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  paiements   PaiementEmploye[]
+  
+  boutiqueId  Int       @default(1) @map("boutique_id")
+  boutique    Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@map("employes")
+}
+
+// Table des paiements de salaire
+model PaiementEmploye {
+  id          Int      @id @default(autoincrement())
+  employeId   Int      @map("employe_id")
+  montant     Float
+  date        DateTime @default(now())
+  periode     String   // Ex: "Janvier 2024"
+  reference   String?  // Numéro de reçu ou ref transaction
+  note        String?
+
+  employe     Employe  @relation(fields: [employeId], references: [id], onDelete: Cascade)
+
+  boutiqueId  Int       @default(1) @map("boutique_id")
+  boutique    Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@index([employeId])
+  @@map("paiements_employe")
+}
+
+enum StatutDette {
+  IMPAYE
+  PARTIEL
+  REGLE
+}
+
+// Table des dettes (Crédits clients)
+model Dette {
+  id            Int           @id @default(autoincrement())
+  nomClient     String        @map("nom_client")
+  telephone     String
+  montantTotal  Float         @map("montant_total")
+  montantVerse  Float         @default(0) @map("montant_verse")
+  statut        StatutDette   @default(IMPAYE)
+  items         Json          // Liste des produits achetés (snapshot)
+  date          DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  paiements     PaiementDette[]
+
+  boutiqueId    Int       @default(1) @map("boutique_id")
+  boutique      Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@map("dettes")
+}
+
+// Historique des paiements de dettes
+model PaiementDette {
+  id          Int      @id @default(autoincrement())
+  detteId     Int      @map("dette_id")
+  montant     Float
+  date        DateTime @default(now())
+  note        String?
+
+  dette       Dette    @relation(fields: [detteId], references: [id], onDelete: Cascade)
+
+  boutiqueId  Int       @default(1) @map("boutique_id")
+  boutique    Boutique  @relation(fields: [boutiqueId], references: [id])
+
+  @@index([detteId])
+  @@map("paiements_dette")
+}
