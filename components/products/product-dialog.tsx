@@ -42,6 +42,7 @@ export function ProductDialog({ open, onOpenChange, onSuccess, product }: Produc
             designation: "",
             prixUnitaire: 0,
             quantite: 0,
+            quantiteMagasin: 0,
             categorie: "",
             seuilAlerte: 5,
         }
@@ -56,6 +57,7 @@ export function ProductDialog({ open, onOpenChange, onSuccess, product }: Produc
                 designation: "",
                 prixUnitaire: 0,
                 quantite: 0,
+                quantiteMagasin: 0,
                 categorie: "",
                 seuilAlerte: 5,
             })
@@ -111,20 +113,28 @@ export function ProductDialog({ open, onOpenChange, onSuccess, product }: Produc
                             {errors.prixUnitaire && <p className="text-xs text-red-500">{errors.prixUnitaire.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="quantite">Stock Initial</Label>
+                            <Label htmlFor="seuilAlerte">Seuil d'alerte</Label>
+                            <Input id="seuilAlerte" type="number" {...register("seuilAlerte")} />
+                            {errors.seuilAlerte && <p className="text-xs text-red-500">{errors.seuilAlerte.message}</p>}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="quantite">Stock Boutique</Label>
                             <Input id="quantite" type="number" {...register("quantite")} />
                             {errors.quantite && <p className="text-xs text-red-500">{errors.quantite.message}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="quantiteMagasin">Stock Magasin</Label>
+                            <Input id="quantiteMagasin" type="number" {...register("quantiteMagasin")} />
+                            {errors.quantiteMagasin && <p className="text-xs text-red-500">{errors.quantiteMagasin.message}</p>}
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="categorie">Catégorie</Label>
                         <Input id="categorie" {...register("categorie")} placeholder="Ex: Matériaux" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="seuilAlerte">Seuil d'alerte</Label>
-                        <Input id="seuilAlerte" type="number" {...register("seuilAlerte")} />
                     </div>
 
                     <DialogFooter>

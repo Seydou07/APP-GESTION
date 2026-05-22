@@ -10,6 +10,7 @@ export const productSchema = z.object({
     designation: z.string().min(2, "La désignation est requise"),
     prixUnitaire: z.coerce.number().min(0, "Le prix doit être positif"),
     quantite: z.coerce.number().min(0, "La quantité doit être positive"),
+    quantiteMagasin: z.coerce.number().min(0, "La quantité en magasin doit être positive").default(0),
     categorie: z.string().optional(),
     seuilAlerte: z.coerce.number().default(5),
 });

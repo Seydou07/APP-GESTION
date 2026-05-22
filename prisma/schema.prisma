@@ -60,6 +60,7 @@ model Produit {
   designation     String    @unique
   prixUnitaire    Float     @map("prix_unitaire")
   quantite        Int       @default(0)
+  quantiteMagasin Int       @default(0) @map("quantite_magasin")
   description     String?
   categorie       String?
   seuilAlerte     Int       @default(5) @map("seuil_alerte")
@@ -183,6 +184,8 @@ enum TypeOperation {
   VENTE
   CORRECTION
   RETOUR
+  TRANSFERT_MAGASIN
+  AJOUT_MAGASIN
 }
 
 // Table des dépenses

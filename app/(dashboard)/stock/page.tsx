@@ -1,13 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, AlertTriangle, TrendingDown, Layers, DollarSign } from "lucide-react"
+import { Package, AlertTriangle, TrendingDown, Layers, DollarSign, Truck } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Pagination } from "@/components/ui/pagination"
+import { Button } from "@/components/ui/button"
+import { TransferStockDialog } from "@/components/products/transfer-dialog"
+import { cn } from "@/lib/utils"
 
 export default function StockPage() {
     const { data: session, status } = useSession()
@@ -15,6 +18,18 @@ export default function StockPage() {
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(5)
+    const [isTransferOpen, setIsTransferOpen] = useState(false)
+    const [productToTransfer, setProductToTransfer] = useState<any>(null)
+
+    const fetchProducts = () => {
+        setLoading(true)
+        fetch("/api/products")
+            .then(res => res.json())
+            .then(data => {
+                setProducts(data)
+                setLoading(false)
+            })
+    }
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -24,13 +39,7 @@ export default function StockPage() {
             redirect("/")
         }
 
-        setLoading(true)
-        fetch("/api/products")
-            .then(res => res.json())
-            .then(data => {
-                setProducts(data)
-                setLoading(false)
-            })
+        fetchProducts()
     }, [status, session])
 
     if (status === "loading") return null
@@ -106,19 +115,20 @@ export default function StockPage() {
                             <TableRow>
                                 <TableHead className="font-bold">Designation</TableHead>
                                 <TableHead className="font-bold">Catégorie</TableHead>
-                                <TableHead className="text-center font-bold">Stock Actuel</TableHead>
+                                <TableHead className="text-center font-bold">Stock Boutique</TableHead>
+                                <TableHead className="text-center font-bold">Stock Magasin</TableHead>
                                 <TableHead className="text-center font-bold">Seuil d'Alerte</TableHead>
-                                <TableHead className="text-right font-bold pr-6">Statut</TableHead>
+                                <TableHead className="text-right font-bold pr-6">Statut & Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground italic">Chargement...</TableCell>
+                                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground italic">Chargement...</TableCell>
                                 </TableRow>
                             ) : lowStock.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground italic">Aucune alerte, tout est en ordre !</TableCell>
+                                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground italic">Aucune alerte, tout est en ordre !</TableCell>
                                 </TableRow>
                             ) : displayedLowStock.map((p: any) => (
                                 <TableRow key={p.id}>
@@ -127,13 +137,36 @@ export default function StockPage() {
                                     <TableCell className="text-center">
                                         <span className="font-bold text-red-600">{p.quantite}</span>
                                     </TableCell>
+                                    <TableCell className="text-center">
+                                        <span className={cn(
+                                            "font-bold px-2 py-0.5 rounded-full text-xs",
+                                            p.quantiteMagasin === 0 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-600"
+                                        )}>
+                                            {p.quantiteMagasin}
+                                        </span>
+                                    </TableCell>
                                     <TableCell className="text-center text-muted-foreground">
                                         {p.seuilAlerte}
                                     </TableCell>
-                                    <TableCell className="text-right pr-6">
-                                        <Badge variant="destructive" className="font-black uppercase text-[10px]">
-                                            Réapprovisionner
-                                        </Badge>
+                                    <TableCell className="text-right pr-6 flex items-center justify-end gap-2">
+                                        {p.quantiteMagasin > 0 ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setProductToTransfer(p)
+                                                    setIsTransferOpen(true)
+                                                }}
+                                                className="h-8 rounded-xl font-bold border-primary text-primary hover:bg-primary/5 flex items-center gap-1.5 transition-all"
+                                            >
+                                                <Truck className="w-3.5 h-3.5" />
+                                                Transférer
+                                            </Button>
+                                        ) : (
+                                            <Badge variant="destructive" className="font-black uppercase text-[10px]">
+                                                Rupture Totale
+                                            </Badge>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -154,6 +187,12 @@ export default function StockPage() {
                     </div>
                 )}
             </div>
+            <TransferStockDialog
+                open={isTransferOpen}
+                onOpenChange={setIsTransferOpen}
+                onSuccess={fetchProducts}
+                product={productToTransfer}
+            />
         </div>
     )
 }

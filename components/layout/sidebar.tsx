@@ -15,6 +15,7 @@ import {
     Wallet,
     Users,
     BookUser,
+    Warehouse,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "next-auth/react"
@@ -49,6 +50,7 @@ export function Sidebar() {
         ...(isAdmin ? [
             { icon: Package, label: "Produits", href: "/products" },
             { icon: Database, label: "Stocks", href: "/stock" },
+            { icon: Warehouse, label: "Magasin", href: "/magasin" },
             { icon: Wallet, label: "Dépenses", href: "/expenses" },
             { icon: Users, label: "Employés", href: "/employees" },
             { icon: BookUser, label: "Dettes / Crédits", href: "/debts" },

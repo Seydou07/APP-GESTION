@@ -1,6 +1,6 @@
 # 🚀 Quickstart — KM BOMI (Next.js + Prisma + Shadcn)
 admin@kmbomi.com
-admin123
+admin123   
 
 Bienvenue ! Ce fichier réunit les commandes, extraits de code et bonnes pratiques dont vous aurez besoin pour développer et déployer rapidement l'application.
 

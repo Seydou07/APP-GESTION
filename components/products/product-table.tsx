@@ -11,13 +11,14 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Plus, Search, Pencil, Eye, Box, Trash2, AlertTriangle, ArrowUpAZ, ArrowDownZA, ChevronsUpDown } from "lucide-react"
+import { MoreHorizontal, Plus, Search, Pencil, Eye, Box, Trash2, AlertTriangle, ArrowUpAZ, ArrowDownZA, ChevronsUpDown, Truck } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 
 import { ProductDialog } from "./product-dialog"
+import { TransferStockDialog } from "./transfer-dialog"
 
 export function ProductTable() {
     const [products, setProducts] = useState([])
@@ -26,6 +27,8 @@ export function ProductTable() {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false)
     const [productToDelete, setProductToDelete] = useState<number | null>(null)
     const [selectedProduct, setSelectedProduct] = useState<any>(null)
+    const [isTransferOpen, setIsTransferOpen] = useState(false)
+    const [productToTransfer, setProductToTransfer] = useState<any>(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [sortOrder, setSortOrder] = useState<"default" | "asc" | "desc">("default")
 
@@ -151,7 +154,8 @@ export function ProductTable() {
                                 </span>
                             </TableHead>
                             <TableHead>Prix Unitaire</TableHead>
-                            <TableHead>Stock</TableHead>
+                            <TableHead>Stock Boutique</TableHead>
+                            <TableHead>Stock Magasin</TableHead>
                             <TableHead>Catégorie</TableHead>
                             <TableHead className="text-right pr-6">Actions</TableHead>
                         </TableRow>
@@ -159,11 +163,11 @@ export function ProductTable() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">Chargement...</TableCell>
+                                <TableCell colSpan={6} className="h-24 text-center">Chargement...</TableCell>
                             </TableRow>
                         ) : filteredProducts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     {searchTerm ? "Aucun produit ne correspond à votre recherche" : "Aucun produit trouvé"}
                                 </TableCell>
                             </TableRow>
@@ -179,8 +183,32 @@ export function ProductTable() {
                                         {product.quantite}
                                     </span>
                                 </TableCell>
+                                <TableCell>
+                                    <span className={cn(
+                                        "px-3 py-1 rounded-full text-xs font-bold",
+                                        product.quantiteMagasin === 0 ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-600"
+                                    )}>
+                                        {product.quantiteMagasin}
+                                    </span>
+                                </TableCell>
                                 <TableCell className="text-muted-foreground">{product.categorie || "-"}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-right space-x-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        title="Transférer vers Boutique"
+                                        disabled={product.quantiteMagasin <= 0}
+                                        onClick={() => {
+                                            setProductToTransfer(product)
+                                            setIsTransferOpen(true)
+                                        }}
+                                        className={cn(
+                                            "rounded-full text-primary hover:text-primary hover:bg-primary/10",
+                                            product.quantiteMagasin <= 0 && "opacity-40"
+                                        )}
+                                    >
+                                        <Truck className="w-4 h-4" />
+                                    </Button>
                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="rounded-full">
                                         <Plus className="w-4 h-4" />
                                     </Button>
@@ -213,6 +241,12 @@ export function ProductTable() {
                 icon={AlertTriangle}
                 onConfirm={() => productToDelete && handleDelete(productToDelete)}
                 confirmText="Oui, supprimer"
+            />
+             <TransferStockDialog
+                open={isTransferOpen}
+                onOpenChange={setIsTransferOpen}
+                onSuccess={fetchProducts}
+                product={productToTransfer}
             />
         </div>
     )

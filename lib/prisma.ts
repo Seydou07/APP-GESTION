@@ -16,7 +16,11 @@ if (!process.env.DATABASE_URL) {
 
 const pool = globalForPrisma.pool ?? new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: process.env.NODE_ENV === 'production' && 
+       !process.env.DATABASE_URL.includes('localhost') && 
+       !process.env.DATABASE_URL.includes('127.0.0.1') 
+       ? { rejectUnauthorized: false } 
+       : false,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
