@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { items, clientId, total, notes } = body
+        const { items, clientId, total, notes, paidAmount = 0 } = body
 
         if (!items || !items.length || !clientId) {
             return new NextResponse("Champs requis manquants", { status: 400 })
@@ -42,11 +42,24 @@ export async function POST(req: Request) {
                 data: {
                     clientId: Number(clientId),
                     amountInitial: Number(total) || 0,
-                    amountDue: Number(total) || 0,
+                    amountDue: (Number(total) || 0) - (Number(paidAmount) || 0),
                     notes: notes || null,
-                    status: "EN_COURS",
+                    status: (Number(paidAmount) || 0) >= (Number(total) || 0) ? "SOLDEE" : "EN_COURS",
                 }
             })
+
+            // If there's a payment, create the payment record
+            if (Number(paidAmount) > 0) {
+                await tx.debtPayment.create({
+                    data: {
+                        debtId: created.id,
+                        amount: Number(paidAmount),
+                        paymentMethod: "DIVERS",
+                        paymentDate: new Date(),
+                        notes: "Paiement initial lors de la vente",
+                    }
+                })
+            }
 
             // Decrement stock for each item
             for (const item of items) {
