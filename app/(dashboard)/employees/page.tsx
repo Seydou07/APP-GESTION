@@ -61,6 +61,8 @@ export default function EmployeesPage() {
     const [paymentForm, setPaymentForm] = useState({
         period: format(new Date(), "MMMM yyyy", { locale: fr }),
         amount: "",
+        prime: "",
+        avance: "",
         note: "",
         paymentDate: format(new Date(), "yyyy-MM-dd")
     })
@@ -119,8 +121,12 @@ export default function EmployeesPage() {
     const openPayModal = (emp: any) => {
         setSelectedEmployee(emp)
         setPaymentForm({
-            ...paymentForm,
-            amount: emp.salaryBase.toString()
+            period: format(new Date(), "MMMM yyyy", { locale: fr }),
+            amount: emp.salaryBase.toString(),
+            prime: "0",
+            avance: "0",
+            note: "",
+            paymentDate: format(new Date(), "yyyy-MM-dd")
         })
         setIsPayModalOpen(true)
     }
@@ -129,12 +135,22 @@ export default function EmployeesPage() {
         e.preventDefault()
         if (!selectedEmployee) return
 
+        const base = Number(selectedEmployee.salaryBase) || 0
+        const prime = Number(paymentForm.prime) || 0
+        const avance = Number(paymentForm.avance) || 0
+        const amount = Math.max(0, base + prime - avance)
+        const breakdown = `Base: ${base} F${prime > 0 ? `, Prime: ${prime} F` : ""}${avance > 0 ? `, Avance: ${avance} F` : ""}`
+        const note = paymentForm.note ? `${paymentForm.note} | ${breakdown}` : breakdown
+
         try {
             const res = await fetch("/api/employees/payments", {
                 method: "POST",
                 body: JSON.stringify({
-                    ...paymentForm,
-                    employeeId: selectedEmployee.id
+                    employeeId: selectedEmployee.id,
+                    amount,
+                    period: paymentForm.period,
+                    paymentDate: paymentForm.paymentDate,
+                    note
                 })
             })
             if (!res.ok) throw new Error()
@@ -159,8 +175,8 @@ export default function EmployeesPage() {
             items: [
                 {
                     designation: `Paiement Salaire - ${payment.period}`,
-                    quantite: 1,
-                    prixUnitaire: payment.amount
+                    quantity: 1,
+                    priceUnit: payment.amount
                 }
             ],
             total: payment.amount,
@@ -192,7 +208,7 @@ export default function EmployeesPage() {
                             Ajouter un Employé
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] rounded-3xl p-6">
+                <DialogContent className="sm:max-w-[480px] rounded-3xl p-5">
                         <DialogHeader>
                             <DialogTitle>Nouvel Employé</DialogTitle>
                         </DialogHeader>
@@ -346,34 +362,71 @@ export default function EmployeesPage() {
 
             {/* Payment Modal */}
             <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>
-                <DialogContent className="sm:max-w-[450px] rounded-3xl p-6">
+                <DialogContent className="sm:max-w-[500px] rounded-3xl p-6">
                     <DialogHeader>
                         <DialogTitle>Payer un Salaire</DialogTitle>
                         <DialogDescription>
                             Paiement pour {selectedEmployee?.lastName} {selectedEmployee?.firstName}
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handlePayment} className="space-y-4 mt-4">
-                        <div className="space-y-2">
-                            <Label>Période concernée</Label>
-                            <Input placeholder="Ex: Janvier 2026" required value={paymentForm.period} onChange={e => setPaymentForm({ ...paymentForm, period: e.target.value })} className="rounded-xl" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Montant à payer (FCFA)</Label>
-                            <Input type="number" required value={paymentForm.amount} onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })} className="rounded-xl font-mono" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date du paiement</Label>
-                            <Input type="date" required value={paymentForm.paymentDate} onChange={e => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })} className="rounded-xl" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Note (Optionnel)</Label>
-                            <Input placeholder="Prime, avance..." value={paymentForm.note} onChange={e => setPaymentForm({ ...paymentForm, note: e.target.value })} className="rounded-xl" />
-                        </div>
-                        <Button type="submit" className="w-full rounded-xl font-bold h-12 mt-2 bg-emerald-600 hover:bg-emerald-700">
-                            Confirmer le Paiement
-                        </Button>
-                    </form>
+                    {selectedEmployee && (() => {
+                        const base = Number(selectedEmployee.salaryBase) || 0
+                        const prime = Number(paymentForm.prime) || 0
+                        const avance = Number(paymentForm.avance) || 0
+                        const totalDu = base + prime
+                        const reste = Math.max(0, totalDu - avance)
+                        const montantVerser = Math.max(0, reste)
+
+                        return (
+                            <form onSubmit={handlePayment} className="space-y-3 mt-3">
+                                <div>
+                                    <Label className="text-xs">Période</Label>
+                                    <Input placeholder="Ex: Janvier 2026" required value={paymentForm.period} onChange={e => setPaymentForm({ ...paymentForm, period: e.target.value })} className="rounded-xl h-9 text-sm" />
+                                </div>
+
+                                <div className="bg-muted/30 rounded-xl p-3 space-y-2 border text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Salaire base</span>
+                                        <span className="font-bold font-mono">{base.toLocaleString()} F</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <Label className="text-[10px] text-muted-foreground">Prime</Label>
+                                            <Input type="number" min="0" placeholder="0" value={paymentForm.prime} onChange={e => setPaymentForm({ ...paymentForm, prime: e.target.value })} className="rounded-xl h-8 text-xs font-mono" />
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px] text-muted-foreground">Avance</Label>
+                                            <Input type="number" min="0" placeholder="0" value={paymentForm.avance} onChange={e => setPaymentForm({ ...paymentForm, avance: e.target.value })} className="rounded-xl h-8 text-xs font-mono" />
+                                        </div>
+                                    </div>
+                                    <div className="border-t pt-1 flex justify-between text-sm font-bold">
+                                        <span>Reste à payer</span>
+                                        <span className="text-primary">{reste.toLocaleString()} F</span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label className="text-xs">Montant à verser</Label>
+                                        <Input type="number" required value={Math.max(0, base + (Number(paymentForm.prime)||0) - (Number(paymentForm.avance)||0))} readOnly className="rounded-xl h-9 text-sm font-mono font-bold text-primary" />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">Date</Label>
+                                        <Input type="date" required value={paymentForm.paymentDate} onChange={e => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })} className="rounded-xl h-9 text-sm" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs">Note</Label>
+                                    <Input placeholder="Optionnel" value={paymentForm.note} onChange={e => setPaymentForm({ ...paymentForm, note: e.target.value })} className="rounded-xl h-9 text-sm" />
+                                </div>
+
+                                <Button type="submit" className="w-full rounded-xl font-bold h-10 mt-1 bg-emerald-600 hover:bg-emerald-700">
+                                    Confirmer le Paiement ({reste.toLocaleString()} F)
+                                </Button>
+                            </form>
+                        )
+                    })()}
                 </DialogContent>
             </Dialog>
 

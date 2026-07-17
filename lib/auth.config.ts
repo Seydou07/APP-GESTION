@@ -43,7 +43,8 @@ export const authConfig = {
                 pathname.startsWith("/invoices") ||
                 pathname.startsWith("/tickets") ||
                 pathname.startsWith("/cash") ||
-                pathname.startsWith("/reports");
+                pathname.startsWith("/reports") ||
+                pathname.startsWith("/catalogues");
 
             if (isDashboardRoute) {
                 if (isLoggedIn) return true;

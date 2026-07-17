@@ -16,7 +16,23 @@ export async function GET() {
                 stockLevels: true,
             },
         })
-        return NextResponse.json(products)
+        // Transform products to match user's interface (designation, quantite, prixUnitaire, etc.)
+        const transformedProducts = products.map(prod => ({
+            ...prod,
+            designation: prod.name,
+            prixUnitaire: prod.salePrice,
+            quantite: prod.stockLevels?.find((sl: any) => sl.warehouseId === 1)?.quantity ?? 0,
+            quantiteMagasin: prod.stockLevels?.find((sl: any) => sl.warehouseId === 2)?.quantity ?? 0,
+            category: prod.category ? {
+                ...prod.category,
+                nom: prod.category.name,
+            } : null,
+            categorie: prod.category ? {
+                ...prod.category,
+                nom: prod.category.name,
+            } : null,
+        }))
+        return NextResponse.json(transformedProducts)
     } catch (error) {
         console.error("[PRODUCTS_GET]", error)
         return new NextResponse("Internal Error", { status: 500 })

@@ -105,6 +105,7 @@ model Category {
   id          Int       @id @default(autoincrement())
   name        String    @map("nom")
   description String?
+  image       String?
 
   parentId Int?      @map("parent_id")
   parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])

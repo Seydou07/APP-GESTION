@@ -9,14 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { InvoiceA4 } from "@/components/sales/invoice-a4"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -24,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { useLayout } from "@/context/layout-context"
 
 interface Invoice {
     id: number
@@ -172,32 +165,14 @@ export default function InvoicesPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setSelectedInvoice(invoice)}
-                                                    >
-                                                        <FileText className="w-4 h-4 mr-2" />
-                                                        Voir
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-5xl">
-                                                    <DialogHeader>
-                                                        <DialogTitle>{invoice.invoiceNumber}</DialogTitle>
-                                                        <DialogDescription>
-                                                            {invoice.client?.name || "Client comptoir"} - {new Date(invoice.invoiceDate).toLocaleDateString('fr-FR')}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    {selectedInvoice && (
-                                                        <InvoiceA4
-                                                            invoice={selectedInvoice}
-                                                            onPrint={() => window.print()}
-                                                        />
-                                                    )}
-                                                </DialogContent>
-                                            </Dialog>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setSelectedInvoice(invoice)}
+                                            >
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                Voir
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -206,6 +181,35 @@ export default function InvoicesPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Invoice View Overlay */}
+            {selectedInvoice && (
+                <InvoiceView
+                    invoice={selectedInvoice}
+                    onPrint={() => {
+                        window.print()
+                        setTimeout(() => setSelectedInvoice(null), 200)
+                    }}
+                    onClose={() => setSelectedInvoice(null)}
+                />
+            )}
+        </div>
+    )
+}
+
+function InvoiceView({ invoice, onPrint, onClose }: { invoice: Invoice; onPrint: () => void; onClose: () => void }) {
+    const { isSidebarCollapsed } = useLayout()
+    const sidebarWidth = isSidebarCollapsed ? 80 : 288
+
+    return (
+        <div
+            className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center"
+            style={{ paddingLeft: sidebarWidth }}
+            onClick={onClose}
+        >
+            <div className="bg-white shadow-2xl border rounded-sm max-w-2xl w-full max-h-screen overflow-y-auto no-scrollbar my-6" onClick={e => e.stopPropagation()}>
+                <InvoiceA4 invoice={invoice} onPrint={onPrint} />
+            </div>
         </div>
     )
 }

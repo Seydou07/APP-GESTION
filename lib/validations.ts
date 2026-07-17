@@ -44,18 +44,14 @@ export const supplierSchema = z.object({
 
 export const saleSchema = z.object({
     items: z.array(z.object({
-        productId: z.number().min(1, "Produit requis"),
-        quantity: z.number().min(1, "La quantité doit être d'au moins 1"),
+        produitId: z.number().min(1, "Produit requis"),
+        quantite: z.number().min(1, "La quantité doit être d'au moins 1"),
         designation: z.string().optional(),
-        priceUnit: z.number().optional(),
-        discount: z.number().optional(),
+        prixUnitaire: z.number().optional(),
     })).min(1, "Le panier doit contenir au moins un produit"),
-    clientId: z.coerce.number().optional(),
-    paymentMethod: z.string().optional(),
-    paidAmount: z.coerce.number().optional(),
-    discount: z.coerce.number().default(0),
-    commission: z.coerce.number().default(0),
-    notes: z.string().optional(),
+    nomClient: z.string().optional(),
+    prenomClient: z.string().optional(),
+    numeroClient: z.string().optional(),
 });
 
 export const purchaseOrderSchema = z.object({

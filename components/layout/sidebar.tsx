@@ -46,6 +46,7 @@ export function Sidebar() {
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/" },
         { icon: ShoppingCart, label: "Vendre", href: "/sales" },
+        { icon: Package, label: "Catalogues", href: "/catalogues" },
         { icon: History, label: "Historique", href: "/sales/history" },
         // Admin Only Links
         ...(isAdmin ? [
